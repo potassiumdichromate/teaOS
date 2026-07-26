@@ -1,0 +1,933 @@
+<title>teaOS — Trusted Examination Architecture</title>
+<style>
+:root{
+  --ink:#111111; --graphite:#2B2B2B; --emerald:#0F8F73; --mint:#52C7A5;
+  --bg:#F8F9FA; --panel:#FFFFFF; --panel-2:#F1F4F2;
+  --tx:#111111; --tx-2:#55625C; --tx-3:#7E8A85;
+  --hair:#DFE4E1; --hair-2:#CBD3CF;
+  --acc:#0F8F73; --acc-soft:#E7F3EF; --acc-tx:#0B6B57;
+  --warn:#B0762F; --deny:#B4543A;
+  --band:#111111; --band-tx:#F2F5F3; --band-tx-2:#9AA8A2; --band-hair:#2A302D;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --w:min(100% - 2.5rem, 62rem);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0B0D0C; --panel:#131715; --panel-2:#171C19;
+    --tx:#EEF2F0; --tx-2:#9DAAA4; --tx-3:#78847F;
+    --hair:#232A26; --hair-2:#2E3733;
+    --acc:#52C7A5; --acc-soft:#12211D; --acc-tx:#6FD5B7;
+    --warn:#D9A05B; --deny:#E08A6C;
+    --band:#070A09; --band-tx:#EEF2F0; --band-tx-2:#8E9B95; --band-hair:#1D2421;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0D0C; --panel:#131715; --panel-2:#171C19;
+  --tx:#EEF2F0; --tx-2:#9DAAA4; --tx-3:#78847F;
+  --hair:#232A26; --hair-2:#2E3733;
+  --acc:#52C7A5; --acc-soft:#12211D; --acc-tx:#6FD5B7;
+  --warn:#D9A05B; --deny:#E08A6C;
+  --band:#070A09; --band-tx:#EEF2F0; --band-tx-2:#8E9B95; --band-hair:#1D2421;
+}
+:root[data-theme="light"]{
+  --bg:#F8F9FA; --panel:#FFFFFF; --panel-2:#F1F4F2;
+  --tx:#111111; --tx-2:#55625C; --tx-3:#7E8A85;
+  --hair:#DFE4E1; --hair-2:#CBD3CF;
+  --acc:#0F8F73; --acc-soft:#E7F3EF; --acc-tx:#0B6B57;
+  --warn:#B0762F; --deny:#B4543A;
+  --band:#111111; --band-tx:#F2F5F3; --band-tx-2:#9AA8A2; --band-hair:#2A302D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+.wrap{width:var(--w);margin-inline:auto}
+.sec{padding:3.25rem 0}
+.alt{background:var(--panel-2);border-block:1px solid var(--hair)}
+.band{background:var(--band);color:var(--band-tx)}
+.eyebrow{font-family:var(--mono);font-size:.6875rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--acc);display:flex;align-items:center;gap:.75rem;margin:0 0 1.25rem}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--hair)}
+.band .eyebrow{color:var(--mint)}
+.band .eyebrow::after{background:var(--band-hair)}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.025em;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(2rem,7vw,3.4rem);letter-spacing:-.04em}
+h2{font-size:clamp(1.5rem,4.6vw,2.15rem);letter-spacing:-.03em}
+h3{font-size:1.0625rem;letter-spacing:-.015em}
+p{margin:0 0 1.05rem;max-width:40rem}
+.lead{font-size:clamp(1.0625rem,2.6vw,1.1875rem);color:var(--tx-2);line-height:1.6}
+.band .lead{color:var(--band-tx-2)}
+.small{font-size:.875rem;line-height:1.6}
+.mono{font-family:var(--mono)}
+.cap{font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);letter-spacing:.04em;
+  margin-top:.85rem;line-height:1.6;max-width:44rem}
+.band .cap{color:var(--band-tx-2)}
+.pull{border-left:2px solid var(--acc);padding:.1rem 0 .1rem 1.1rem;margin:1.75rem 0;
+  font-size:1.0625rem;color:var(--tx);max-width:38rem}
+.band .pull{border-color:var(--mint);color:var(--band-tx)}
+
+
+.hero{background:var(--band);color:var(--band-tx);padding:2.5rem 0 3.25rem}
+.hero-logo{width:min(15rem,58vw);margin-bottom:2rem}
+.hero h1{color:var(--band-tx);margin-bottom:1.25rem}
+.hero .lead{max-width:36rem;margin-bottom:1.75rem}
+.tea{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 2rem;padding:0;list-style:none}
+.tea li{font-family:var(--mono);font-size:.75rem;letter-spacing:.05em;color:var(--band-tx);
+  border:1px solid var(--band-hair);padding:.4rem .6rem;border-radius:3px}
+.tea b{color:var(--mint);font-weight:500}
+.byline{font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--band-tx-2);border-top:1px solid var(--band-hair);padding-top:1.25rem;margin:0}
+
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hair);
+  border:1px solid var(--hair);margin:2rem 0 0}
+.stat{background:var(--panel);padding:1.1rem 1rem}
+.stat .n{font-family:var(--mono);font-size:1.5rem;font-weight:500;letter-spacing:-.03em;
+  color:var(--acc-tx);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .k{font-size:.8125rem;color:var(--tx-2);margin-top:.35rem;line-height:1.45}
+
+.stack{margin-top:1.75rem;border:1px solid var(--hair);border-radius:4px;overflow:hidden;
+  background:var(--panel)}
+.layer{padding:1rem}
+.layer + .layer{border-top:1px solid var(--hair)}
+.layer .lh{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.75rem;flex-wrap:wrap}
+.layer .ln{font-family:var(--mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3)}
+.layer .lt{font-size:.9375rem;font-weight:600;letter-spacing:-.01em}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(7.5rem,1fr));gap:.4rem}
+.mod{font-family:var(--mono);font-size:.6875rem;letter-spacing:.02em;padding:.5rem .6rem;
+  border-radius:3px;border:1px solid var(--hair-2);color:var(--tx-2);background:var(--bg);
+  line-height:1.35}
+.mod.on{border-color:var(--acc);color:var(--acc-tx);background:var(--acc-soft)}
+.mod.soon{border-style:dashed;color:var(--tx-3)}
+.layer.infra{background:var(--band)}
+.layer.infra .ln{color:var(--band-tx-2)}
+.layer.infra .lt{color:var(--band-tx)}
+.layer.infra .mod{background:transparent;border-color:var(--band-hair);color:var(--band-tx-2)}
+.legend{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.9rem;font-family:var(--mono);
+  font-size:.625rem;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3)}
+.legend span{display:flex;align-items:center;gap:.4rem}
+.legend i{width:.6rem;height:.6rem;border-radius:2px;border:1px solid var(--hair-2);display:block}
+.legend i.on{background:var(--acc-soft);border-color:var(--acc)}
+.legend i.soon{border-style:dashed}
+
+.flow{list-style:none;margin:1.75rem 0 0;padding:0;display:grid;gap:1px;background:var(--hair);
+  border:1px solid var(--hair);position:relative}
+.step{background:var(--panel);padding:1.25rem 1.1rem;display:grid;
+  grid-template-columns:2.25rem 1fr;gap:.9rem;align-items:start;position:relative}
+.step .idx{font-family:var(--mono);font-size:.75rem;color:var(--acc-tx);background:var(--acc-soft);
+  border:1px solid var(--hair-2);border-radius:3px;text-align:center;padding:.3rem 0;font-weight:500;
+  position:relative;z-index:1;transition:background .35s,border-color .35s,color .35s}
+.flow .step .idx{animation:pip 5s ease-in-out infinite}
+.flow .step:nth-child(1) .idx{animation-delay:0s}
+.flow .step:nth-child(2) .idx{animation-delay:.45s}
+.flow .step:nth-child(3) .idx{animation-delay:.9s}
+.flow .step:nth-child(4) .idx{animation-delay:1.35s}
+.flow .step:nth-child(5) .idx{animation-delay:1.8s}
+@keyframes pip{0%,14%,100%{background:var(--acc-soft);border-color:var(--hair-2);color:var(--acc-tx)}
+  5%{background:var(--acc);border-color:var(--acc);color:#fff}}
+.step h3{margin-bottom:.3rem}
+.step p{margin:0;font-size:.9375rem;color:var(--tx-2);max-width:38rem}
+.step .tech{font-family:var(--mono);font-size:.6875rem;letter-spacing:.05em;color:var(--tx-3);
+  margin-top:.55rem;display:flex;flex-wrap:wrap;gap:.3rem .75rem}
+
+.gate{margin-top:2rem;border:1px solid var(--band-hair);border-radius:4px;overflow:hidden}
+.halves{display:grid}
+.half{padding:1.25rem 1.1rem;background:rgba(255,255,255,.02)}
+.half + .half{border-top:1px solid var(--band-hair)}
+.half .who{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mint);margin-bottom:.6rem}
+.half h3{color:var(--band-tx);margin-bottom:.4rem;font-size:1rem}
+.half p{margin:0;font-size:.9375rem;color:var(--band-tx-2)}
+.lockrow{border-top:1px solid var(--band-hair);padding:1.5rem 1rem;text-align:center;
+  background:rgba(82,199,165,.04)}
+.lockrow svg{margin:0 auto;display:block}
+.shackle{transition:transform .5s cubic-bezier(.3,1.4,.4,1)}
+.gate.open .shackle{transform:translateY(-7px)}
+.lockbody{fill:none;stroke:var(--deny);stroke-width:2.5;transition:stroke .5s}
+.gate.open .lockbody{stroke:var(--mint)}
+.lockdot{fill:var(--deny);transition:fill .5s}
+.gate.open .lockdot{fill:var(--mint)}
+.js .gate:not(.open) .lockwrap{animation:deny 2.6s ease-in-out infinite}
+@keyframes deny{0%,88%,100%{transform:translateX(0)}91%{transform:translateX(-3px)}94%{transform:translateX(3px)}97%{transform:translateX(-2px)}}
+.lockstate{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;
+  margin-top:.85rem;color:var(--deny);transition:color .5s}
+.gate.open .lockstate{color:var(--mint)}
+.lockmeta{font-family:var(--mono);font-size:.6875rem;color:var(--band-tx-2);margin-top:.4rem;
+  letter-spacing:.04em}
+.gate-out{border-top:1px solid var(--band-hair);padding:1rem;text-align:center;
+  font-family:var(--mono);font-size:.8125rem;letter-spacing:.03em;color:var(--mint);
+  transition:opacity .6s,color .6s}
+.js .gate:not(.open) .gate-out{opacity:.45;color:var(--band-tx-2)}
+
+.deny-list{list-style:none;margin:1.75rem 0 0;padding:0;display:grid;gap:1px;
+  background:var(--band-hair);border:1px solid var(--band-hair);border-radius:4px;overflow:hidden}
+.deny-list li{background:var(--band);padding:.85rem 1rem;display:flex;gap:.75rem;align-items:baseline;
+  font-size:.9375rem;color:var(--band-tx-2);flex-wrap:wrap}
+.deny-list .role{font-family:var(--mono);font-size:.75rem;color:var(--band-tx);min-width:5.5rem;
+  letter-spacing:.04em}
+.deny-list .x{color:var(--deny);font-family:var(--mono);font-size:.8125rem}
+
+.grid{display:grid;gap:1rem;margin-top:1.75rem}
+.card{background:var(--panel);border:1px solid var(--hair);border-radius:4px;padding:1.25rem 1.15rem}
+.card .k{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc-tx);margin-bottom:.6rem}
+.card h3{margin-bottom:.45rem}
+.card p{margin:0;font-size:.9375rem;color:var(--tx-2)}
+.card ul{margin:.7rem 0 0;padding-left:1.05rem;font-size:.9375rem;color:var(--tx-2)}
+.card li{margin-bottom:.35rem}
+.card .meta{margin-top:.85rem;padding-top:.7rem;border-top:1px solid var(--hair);
+  font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);letter-spacing:.04em;line-height:1.5}
+
+.seg{background:var(--panel);border:1px solid var(--hair);border-radius:4px;padding:1.25rem 1.15rem;
+  display:grid;gap:.75rem}
+.seg .sh{display:flex;align-items:center;gap:.7rem}
+.seg .ic{width:2.1rem;height:2.1rem;border-radius:3px;background:var(--acc-soft);
+  border:1px solid var(--hair-2);display:grid;place-items:center;flex:0 0 auto}
+.seg .ic svg{width:1.1rem;height:1.1rem;stroke:var(--acc-tx);fill:none;stroke-width:1.6}
+.seg h3{font-size:1rem}
+.seg p{margin:0;font-size:.9375rem;color:var(--tx-2)}
+.seg .pain{font-size:.875rem;color:var(--tx-2);border-left:2px solid var(--hair-2);
+  padding-left:.75rem;margin:0}
+.seg .vol{font-family:var(--mono);font-size:.6875rem;letter-spacing:.06em;color:var(--acc-tx);
+  text-transform:uppercase}
+
+.qa{border-top:1px solid var(--hair);padding:1.6rem 0}
+.qa:last-child{border-bottom:1px solid var(--hair)}
+.qa h3{margin-bottom:.6rem;color:var(--tx)}
+.qa p{font-size:.9375rem;color:var(--tx-2)}
+.qa p:last-child{margin-bottom:0}
+.qa .tag{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc-tx);display:block;margin-bottom:.5rem}
+
+.tbl-wrap{overflow-x:auto;margin-top:1.5rem;border:1px solid var(--hair);border-radius:4px}
+table{border-collapse:collapse;width:100%;min-width:32rem;font-size:.875rem}
+th,td{text-align:left;padding:.7rem .85rem;border-bottom:1px solid var(--hair);vertical-align:top}
+th{font-family:var(--mono);font-size:.6875rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:400;background:var(--panel-2)}
+td{color:var(--tx-2)}
+td:first-child{color:var(--tx)}
+tr:last-child td{border-bottom:0}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ok{color:var(--acc-tx);font-family:var(--mono);font-size:.75rem;white-space:nowrap}
+.pend{color:var(--warn);font-family:var(--mono);font-size:.75rem;white-space:nowrap}
+.addr{font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);word-break:break-all}
+
+.q{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
+.q-item{background:var(--panel);padding:1.2rem 1.1rem}
+.q-item .qh{display:flex;align-items:baseline;gap:.75rem;margin-bottom:.7rem;flex-wrap:wrap}
+.q-item .qn{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;color:var(--acc-tx);
+  background:var(--acc-soft);padding:.2rem .5rem;border-radius:3px}
+.q-item .qd{font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);letter-spacing:.04em}
+.q-item h3{font-size:1rem;margin-bottom:.5rem}
+.q-item ul{margin:0;padding-left:1.05rem;font-size:.9375rem;color:var(--tx-2)}
+.q-item li{margin-bottom:.3rem}
+.q-metric{margin-top:.9rem;padding-top:.75rem;border-top:1px solid var(--hair);
+  display:flex;gap:1.5rem;flex-wrap:wrap}
+.q-metric div{display:flex;flex-direction:column;gap:.1rem}
+.q-metric .mk{font-family:var(--mono);font-size:.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3)}
+.q-metric .mv{font-family:var(--mono);font-size:1rem;color:var(--tx);font-variant-numeric:tabular-nums}
+.bar{height:3px;background:var(--hair);border-radius:2px;overflow:hidden;margin-top:.85rem}
+.bar i{display:block;height:100%;background:var(--acc);width:var(--fill);
+  transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+.js .bar i{width:0}
+.js .q.lit .bar i{width:var(--fill)}
+
+.founder{display:grid;gap:1.35rem;margin-top:1.75rem;align-items:start}
+.founder img{width:7.5rem;border-radius:4px;border:1px solid var(--hair);filter:grayscale(1)}
+.founder .nm{font-size:1.0625rem;font-weight:600;letter-spacing:-.015em}
+.founder .rl{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc-tx);margin:.25rem 0 .85rem}
+.founder p{font-size:.9375rem;color:var(--tx-2)}
+
+.schema{margin-top:1.75rem;background:#0B0F12;border:1px solid var(--hair);border-radius:4px;
+  padding:.6rem;overflow:hidden}
+.schema img{border-radius:2px}
+
+.close h2{color:var(--band-tx);max-width:26rem}
+.close .lead{max-width:34rem}
+.cta{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:2rem}
+.cta a{font-family:var(--mono);font-size:.8125rem;letter-spacing:.04em;text-decoration:none;
+  padding:.7rem 1.1rem;border-radius:3px;border:1px solid var(--band-hair);color:var(--band-tx);
+  transition:background .15s,border-color .15s}
+.cta a:hover{border-color:var(--mint);background:rgba(82,199,165,.08)}
+.cta a.pri{background:var(--mint);border-color:var(--mint);color:#08231C}
+.cta a.pri:hover{background:#6FD5B7;border-color:#6FD5B7}
+.cta a:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.foot{padding:1.75rem 0;border-top:1px solid var(--band-hair);margin-top:2.5rem;
+  display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:center}
+.foot img{width:1.75rem;opacity:.9}
+.foot .fm{font-family:var(--mono);font-size:.75rem;color:var(--band-tx-2);letter-spacing:.03em}
+
+@media (min-width:40rem){
+  .sec{padding:4.25rem 0}
+  .hero{padding:3.5rem 0 4rem}
+  .stat-row{grid-template-columns:repeat(4,1fr)}
+  .grid{grid-template-columns:1fr 1fr}
+  .halves{grid-template-columns:1fr 1fr}
+  .half + .half{border-top:0;border-left:1px solid var(--band-hair)}
+  .step{grid-template-columns:2.5rem 1fr;padding:1.4rem 1.35rem}
+  .founder{grid-template-columns:7.5rem 1fr;gap:1.75rem}
+  .q{grid-template-columns:1fr 1fr}
+  .layer{padding:1.15rem 1.25rem}
+}
+@media (min-width:60rem){
+  .sec{padding:5rem 0}
+  .grid.three{grid-template-columns:repeat(3,1fr)}
+  .grid.four{grid-template-columns:repeat(4,1fr)}
+  .q{grid-template-columns:repeat(4,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  .bar i{width:var(--fill)!important}
+}
+</style>
+
+<script>
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    && typeof IntersectionObserver !== 'undefined') {
+  document.documentElement.classList.add('js');
+}
+</script>
+
+<header class="hero">
+  <div class="wrap">
+    <img class="hero-logo" src="{{LOGO_DARK}}" alt="teaOS" />
+    <h1>Exams you don't have to take anyone's word for.</h1>
+    <p class="lead">teaOS is a decentralized operating system for secure, verifiable, AI-powered
+      digital examinations — where the question paper cannot be opened early by anyone, including
+      the people who run the exam.</p>
+    <ul class="tea">
+      <li><b>T</b> — Trusted</li>
+      <li><b>E</b> — Examination</li>
+      <li><b>A</b> — Architecture</li>
+    </ul>
+    <p class="byline">A HorizonX Labs company</p>
+  </div>
+</header>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">The problem</p>
+    <h2>Every paper leak ends the same way.</h2>
+    <p class="lead">An investigation. A committee. A promise it won't happen again. Then the same
+      system gets rebuilt, exactly as it was.</p>
+    <p>The reason isn't that people running exams are careless. It's structural. In every exam
+      system operating today, some human being holds the question paper before the exam starts —
+      a database administrator, a printing vendor, a regional officer, someone with production
+      access at 2am. Security is a rule asking them not to look.</p>
+    <p>A rule has no enforcement layer. And when something does go wrong, the audit logs that
+      would prove it sit on servers owned by the same institution being investigated.</p>
+    <div class="pull">Every exam system in the world currently asks candidates to trust an
+      administrator. teaOS removes the administrator from the trust equation — not with policy,
+      with cryptography.</div>
+    <div class="stat-row">
+      <div class="stat"><div class="n">$28B</div><div class="k">Global assessment and testing market</div></div>
+      <div class="stat"><div class="n">300M+</div><div class="k">People sitting high-stakes exams each year</div></div>
+      <div class="stat"><div class="n">17M</div><div class="k">Candidates hit by cancelled exams in India alone, in five years</div></div>
+      <div class="stat"><div class="n">Zero</div><div class="k">Independent proof a candidate can check today</div></div>
+    </div>
+    <p class="cap">Governments keep legislating harder penalties for leaking. None of it changes
+      who holds the paper beforehand.</p>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">What we're building</p>
+    <h2>A complete operating system for examinations.</h2>
+    <p class="lead">Not a proctoring plugin. Not a question bank with a login screen. The whole
+      stack — authoring through verification — with a cryptographic guarantee under every layer.</p>
+    <p>Institutions today stitch together four or five vendors: one for the question bank, one for
+      delivery, one for proctoring, one for results. Every seam between them is a place where trust
+      has to be assumed and integrity can't be proven. teaOS collapses that into one system where
+      each stage hands the next a verifiable artifact instead of a promise.</p>
+
+    <div class="stack">
+      <div class="layer">
+        <div class="lh"><span class="ln">Layer 03</span><span class="lt">Applications</span></div>
+        <div class="mods">
+          <span class="mod on">Question authoring</span>
+          <span class="mod on">AI validation</span>
+          <span class="mod on">Blueprint engine</span>
+          <span class="mod on">Paper assembly</span>
+          <span class="mod on">Centre gateway</span>
+          <span class="mod on">Delivery client</span>
+          <span class="mod on">Evaluation</span>
+          <span class="mod on">Rank generation</span>
+          <span class="mod on">Public verification</span>
+          <span class="mod">Proctoring + identity</span>
+          <span class="mod">Multi-board tenancy</span>
+          <span class="mod soon">Autonomous agents</span>
+          <span class="mod soon">Adaptive testing</span>
+          <span class="mod soon">Credential portability</span>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="lh"><span class="ln">Layer 02</span><span class="lt">teaOS core</span></div>
+        <div class="mods">
+          <span class="mod on">Envelope encryption</span>
+          <span class="mod on">Timelock orchestration</span>
+          <span class="mod on">Deterministic assembly</span>
+          <span class="mod on">Per-candidate seeding</span>
+          <span class="mod on">Anchoring + audit</span>
+          <span class="mod on">Role + access policy</span>
+        </div>
+      </div>
+      <div class="layer infra">
+        <div class="lh"><span class="ln">Layer 01</span><span class="lt">Decentralized infrastructure</span></div>
+        <div class="mods">
+          <span class="mod">0G Compute — TEE inference</span>
+          <span class="mod">0G Storage — encrypted blobs</span>
+          <span class="mod">0G Chain — anchoring</span>
+          <span class="mod">Miden — ZK timelock + notes</span>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="on"></i> Shipped</span>
+      <span><i></i> In build</span>
+      <span><i class="soon"></i> Roadmap</span>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>Five stages, each one provable.</h2>
+    <ol class="flow" id="flow">
+      <li class="step">
+        <span class="idx">01</span>
+        <div>
+          <h3>Authors submit questions</h3>
+          <p>Each question goes straight into a confidential AI review — duplicate detection against
+            the existing bank, difficulty prediction, bias and grammar checks, cognitive-level
+            classification. It runs inside a hardware enclave, so the question text never sits
+            readable on anyone's server. Pass, and it's encrypted and anchored. Fail, and the author
+            gets specific feedback.</p>
+          <div class="tech"><span>0G Compute · Intel TDX</span><span>AES-256-GCM</span><span>0G Storage</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="idx">02</span>
+        <div>
+          <h3>The institution designs a blueprint, not a paper</h3>
+          <p>Administrators set the shape — subject weightage, topic spread, difficulty mix, marks,
+            negative marking. They never pick individual questions. The system assembles the paper
+            deterministically from the approved bank, and no human sees the assembled result.</p>
+          <div class="tech"><span>Deterministic selection</span><span>Per-candidate seed</span><span>PaperRegistry</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="idx">03</span>
+        <div>
+          <h3>The paper is sealed until exam time</h3>
+          <p>The assembled paper is encrypted with a fresh key. That key is wrapped into a Miden
+            P2IDE note with a timelock height set to exam start. Until that block arrives the note
+            cannot be consumed — enforced by the note script running in Miden's VM, not by our
+            application code.</p>
+          <div class="tech"><span>Miden P2IDE note</span><span>timelock_height = exam start</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="idx">04</span>
+        <div>
+          <h3>Candidates sit it, submissions commit privately</h3>
+          <p>Question and option order are shuffled per candidate from their own seed — same
+            questions, same difficulty, different arrangement. Answers autosave encrypted. On submit,
+            a private Miden note commits the submission; its nullifier makes silent resubmission
+            impossible without revealing what was answered.</p>
+          <div class="tech"><span>Private notes</span><span>Nullifier-based</span><span>SubmissionRegistry</span></div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="idx">05</span>
+        <div>
+          <h3>Results anyone can verify — no login</h3>
+          <p>Evaluation and ranking run in an access-controlled service and anchor the result hash on
+            chain. A candidate enters their application ID and date of birth on a public page, and
+            the system re-derives everything from scratch: answer hash, submission hash, official
+            result hash, note status, storage proof, chain transaction.</p>
+          <div class="tech"><span>ResultRegistry</span><span>Rank generation</span><span>Public portal</span></div>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec band">
+  <div class="wrap">
+    <p class="eyebrow">The core guarantee</p>
+    <h2>Two halves. Neither one is enough.</h2>
+    <p class="lead">This is the single idea the whole product rests on. The paper and the key that
+      opens it live in different places, under different rules, controlled by nobody in particular.</p>
+
+    <div class="gate" id="gate">
+      <div class="halves">
+        <div class="half">
+          <div class="who">Half one</div>
+          <h3>The encrypted paper</h3>
+          <p>Sits in 0G Storage. Anyone can download it. Without the key it's a wall of
+            ciphertext — AES-256-GCM, no shortcuts.</p>
+        </div>
+        <div class="half">
+          <div class="who">Half two</div>
+          <h3>The key, timelocked</h3>
+          <p>Wrapped inside a Miden note whose script refuses to release it before the exam-start
+            block. Not a permission check. A protocol rule.</p>
+        </div>
+      </div>
+      <div class="lockrow">
+        <div class="lockwrap">
+          <svg width="46" height="52" viewBox="0 0 46 52" role="img" aria-label="Timelock, sealed until exam start">
+            <path class="lockbody shackle" d="M13 22V15a10 10 0 0 1 20 0v7" stroke-linecap="round"/>
+            <rect class="lockbody" x="7" y="22" width="32" height="25" rx="3"/>
+            <circle class="lockdot" cx="23" cy="34" r="3.2"/>
+          </svg>
+        </div>
+        <div class="lockstate" id="lockstate">Sealed · block height not reached</div>
+        <div class="lockmeta">timelock_height = exam start &nbsp;·&nbsp; reclaim_height = window close</div>
+      </div>
+      <div class="gate-out">encrypted paper + released key = readable, and only now</div>
+    </div>
+
+    <p style="margin-top:1.75rem" class="lead">We tested this the only way that counts — by trying
+      to break in from every direction, using real accounts on a real deployment.</p>
+    <ul class="deny-list">
+      <li><span class="role">Admin</span><span class="x">denied</span><span>Highest-privilege account. No override key exists to give them.</span></li>
+      <li><span class="role">Exam centre</span><span class="x">denied</span><span>Authorization endpoint returns unauthorized, with the reason.</span></li>
+      <li><span class="role">Candidate</span><span class="x">denied</span><span>Exam start refused; paper status is not READY.</span></li>
+      <li><span class="role">Us</span><span class="x">denied</span><span>Same code path. We built it and we can't open it either.</span></li>
+    </ul>
+    <div class="pull">There is no backend override. Not because we chose not to build one —
+      because the architecture has nowhere to put it.</div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Who buys this</p>
+    <h2>Anyone whose exam result has to hold up under challenge.</h2>
+    <p class="lead">Four segments, one shared problem: they all make consequential decisions from
+      test scores, and none of them can currently prove the test wasn't compromised.</p>
+
+    <div class="grid four">
+      <div class="seg">
+        <div class="sh">
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg></span>
+          <h3>Enterprise &amp; MNC hiring</h3>
+        </div>
+        <span class="vol">10K – 500K candidates / year</span>
+        <p>Campus recruitment, lateral hiring assessments, internal promotion tests, global
+          certification programs run across dozens of countries.</p>
+        <p class="pain">A leaked question bank quietly destroys the validity of every hire made
+          from it — and there's no defensible record when a rejected candidate disputes the result.</p>
+      </div>
+      <div class="seg">
+        <div class="sh">
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5-10-5ZM6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+          <h3>Universities &amp; colleges</h3>
+        </div>
+        <span class="vol">5K – 200K candidates / year</span>
+        <p>Entrance tests, semester examinations, online degree assessment, and remote programs
+          across multiple campuses.</p>
+        <p class="pain">Internal leaks are common and rarely reported. Re-examinations are expensive,
+          and accreditation bodies increasingly ask for an audit trail nobody can produce.</p>
+      </div>
+      <div class="seg">
+        <div class="sh">
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 3.8 9.2 9 10 5.2-.8 9-5 9-10V6l-9-4Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+          <h3>Government &amp; public boards</h3>
+        </div>
+        <span class="vol">100K – 5M candidates / year</span>
+        <p>National and regional competitive examinations, civil service recruitment, public sector
+          selection at population scale.</p>
+        <p class="pain">A single leak means mass cancellation, litigation, and political
+          consequence. This is where the cost of failure is highest and the scrutiny is total.</p>
+      </div>
+      <div class="seg">
+        <div class="sh">
+          <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="m8.5 13.5-1.5 8 5-3 5 3-1.5-8"/></svg></span>
+          <h3>Certification bodies</h3>
+        </div>
+        <span class="vol">20K – 1M candidates / year</span>
+        <p>Professional licensing, IT and cloud certifications, skills credentialing, continuing
+          education requirements.</p>
+        <p class="pain">Proxy testing and credential fraud attack the one thing a certification body
+          actually sells — the belief that the certificate means something.</p>
+      </div>
+    </div>
+    <p class="cap">We're starting with enterprise recruitment and private universities: shorter
+      sales cycles, real budgets, and the same integrity problem at a scale where we can prove the
+      system before approaching public boards.</p>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">Design decisions</p>
+    <h2>Why each piece is there.</h2>
+
+    <div class="qa">
+      <span class="tag">Why blockchain at all</span>
+      <h3>Because a database is owned by whoever is being investigated.</h3>
+      <p>This is the honest answer, and it's the only one that matters. Exam boards already keep
+        meticulous logs. The problem is that when a leak is alleged, those logs sit on infrastructure
+        controlled by the institution under scrutiny — and no candidate, court, or journalist can
+        independently confirm they weren't edited after the fact.</p>
+      <p>Anchoring content hashes to a public chain isn't decentralization as ideology. It buys one
+        specific property: the record exists outside the institution's reach and can't be rewritten
+        later — by them, by us, or by anyone who compromises either of us.</p>
+    </div>
+
+    <div class="qa">
+      <span class="tag">Why Miden</span>
+      <h3>Because the timelock has to be enforced by physics, not by a manager.</h3>
+      <p>Most "scheduled release" systems are a database column and a cron job. Anyone with write
+        access can change the date. Miden gives us something categorically different: P2IDE notes
+        carry a <span class="mono">timelock_height</span> enforced by the note script inside Miden's
+        VM. There is no admin to bribe, because there is no admin in the path.</p>
+      <p>Miden also does client-side proving, so key material never has to exist on a server that can
+        be subpoenaed or breached. And its private notes let submissions commit on-chain without
+        publishing who answered what — a nullifier prevents resubmission while the content stays
+        confidential. For an exam system, that combination is unusually exact.</p>
+    </div>
+
+    <div class="qa">
+      <span class="tag">Why 0G</span>
+      <h3>Because question validation needs AI that nobody gets to read over.</h3>
+      <p>Checking a question for duplicates, bias, and difficulty needs a real model. But sending an
+        unreleased exam question to a normal inference API means handing the paper to a third-party
+        vendor. 0G Compute runs inference inside Intel TDX hardware enclaves with attestation, so we
+        can prove where it executed and that the content stayed sealed.</p>
+      <p>0G Storage gives us content-addressed encrypted blobs with Merkle proofs — a stored paper
+        can be proven byte-identical to what was anchored. And 0G Chain is an EVM L1 cheap enough to
+        anchor at per-question granularity instead of batching daily, which is what makes the audit
+        trail fine-grained enough to actually be useful.</p>
+    </div>
+
+    <div class="qa">
+      <span class="tag">Why not just build it centrally</span>
+      <h3>Because we'd be asking for the same trust everyone else already asked for.</h3>
+      <p>A centralized teaOS would be faster to build and easier to sell. It would also be one
+        insider away from the exact failure it claims to prevent — and there'd be no way for a
+        candidate to tell the difference between a system that works and one that quietly doesn't.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Full system schematic</p>
+    <h2>Every actor, every hop.</h2>
+    <p class="lead">The complete end-to-end flow across all five roles — author, institution, exam
+      centre, candidate, and the public verification layer.</p>
+    <div class="schema"><img src="{{FLOW}}" alt="teaOS end-to-end architecture: author question submission through AI validation and encryption, institutional blueprint and paper assembly with Miden timelock, exam centre authorization, candidate exam client and private submission, evaluation, ranking and public verification portal" /></div>
+    <p class="cap">Teal = 0G Storage / 0G Chain · Purple = 0G Compute TEE inference ·
+      Coral = Miden zero-knowledge layer · Gray = deterministic application logic</p>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">Evidence</p>
+    <h2>What's actually running.</h2>
+    <p class="lead">Small scale, but real. Every row below came from executing the pipeline against
+      live mainnet infrastructure — not a simulation, not a local mock.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Stage</th><th>What ran</th><th>Network</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Registry deployment</td><td>5 anchor contracts deployed</td><td>0G mainnet · chain 16661</td><td><span class="ok">live</span></td></tr>
+          <tr><td>Question pipeline</td><td>TEE validation → encrypt → store → anchor</td><td>0G Compute + Storage + Chain</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Paper assembly</td><td>Select → assemble → re-encrypt → anchor</td><td>0G mainnet</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Security gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Miden timelock</td><td>Self-issued faucet, mint, P2IDE note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
+          <tr><td>Miden testnet</td><td>Same code, blocked on node version rollout</td><td>Miden testnet</td><td><span class="pend">waiting</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:1.5rem"><b>On that last row, plainly:</b> our Miden integration is complete
+      and proven — it executed a real transaction on Miden's devnet. Their public testnet currently
+      rejects the newest published client SDK, which is the only version exposing the faucet APIs we
+      need. That's an upstream rollout gap on Miden's side, not a gap in our code, and it clears the
+      moment their nodes catch up.</p>
+
+    <p class="eyebrow" style="margin-top:2.5rem">On-chain anchors — 0G mainnet</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Registry</th><th>Address</th></tr></thead>
+        <tbody>
+          <tr><td>QuestionRegistry</td><td class="addr">0xBE695ccf52cF181ee8E3BD3ba1063a7f62362Bfa</td></tr>
+          <tr><td>PaperRegistry</td><td class="addr">0x3edA852e902A75d0b35880e63C87321b667Cb367</td></tr>
+          <tr><td>SubmissionRegistry</td><td class="addr">0xF33778a39369E318c3a74Fc97E7540772A37f384</td></tr>
+          <tr><td>ResultRegistry</td><td class="addr">0xB108Db8f75C0739bb0012C0F2d8FDEAF8303Adec</td></tr>
+          <tr><td>AuditLogRegistry</td><td class="addr">0xa2814c082051A42F6a57f1A38ffcC4EFBfe42f9C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">Every transaction above was independently re-verified by querying the chain
+      directly, rather than trusting our own application's database.</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">What comes next</p>
+    <h2>Autonomous agents that watch the exam, and can be audited themselves.</h2>
+    <p class="lead">The next layer of teaOS is agentic. Exams generate enormous amounts of signal
+      that no human team can watch in real time — and the moment you automate that watching, you
+      create a new trust problem: who audits the watcher?</p>
+    <p>Our answer is that agents get the same treatment as everyone else in this system. They run
+      inside 0G Compute enclaves, so they never see raw candidate data in the clear. And every
+      judgement they make — every flag, every escalation, every intervention — is anchored on chain
+      with the evidence that triggered it. An agent's decisions become exactly as reviewable as a
+      human invigilator's, except they don't get tired at hour four.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="k">Agent 01</div>
+        <h3>Live invigilation</h3>
+        <p>Watches session telemetry across every centre simultaneously — focus loss, timing
+          irregularities, input patterns — and produces a signed evidence bundle instead of an
+          unexplained accusation.</p>
+        <div class="meta">Runs in TEE · decisions anchored · human review required before action</div>
+      </div>
+      <div class="card">
+        <div class="k">Agent 02</div>
+        <h3>Collusion detection</h3>
+        <p>Statistical analysis across centres and cohorts to surface coordinated answer patterns
+          that are invisible when each session is examined alone.</p>
+        <div class="meta">Cross-centre correlation · privacy-preserving aggregates</div>
+      </div>
+      <div class="card">
+        <div class="k">Agent 03</div>
+        <h3>Question bank health</h3>
+        <p>Continuously audits the bank for over-exposure, difficulty drift, and staleness, then
+          proposes retirement or refresh before a question stops discriminating.</p>
+        <div class="meta">Psychometric drift monitoring · retirement recommendations</div>
+      </div>
+      <div class="card">
+        <div class="k">Agent 04</div>
+        <h3>Blueprint co-pilot</h3>
+        <p>Proposes paper blueprints from historical performance data — balancing difficulty,
+          coverage, and discrimination — so institutions design better tests, not just legal ones.</p>
+        <div class="meta">Historical calibration · institution approves, agent never publishes</div>
+      </div>
+    </div>
+    <p class="cap">Also on the roadmap: adaptive testing that adjusts difficulty per candidate
+      without compromising comparability, and cross-border credential portability so a verified
+      result travels with the candidate instead of living in one institution's database.</p>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">Business model</p>
+    <h2>We charge institutions. Candidates never pay.</h2>
+    <p class="lead">B2B SaaS sold to enterprises, universities, examination boards, and certification
+      bodies. Priced on candidate volume, because that's what the customer already budgets against.</p>
+
+    <div class="grid three">
+      <div class="card">
+        <div class="k">Line 1 · Platform</div>
+        <h3>Annual licence</h3>
+        <p>Tiered by candidate volume and modules. Covers the authoring stack, blueprint engine,
+          admin console, and audit tooling.</p>
+        <ul><li>$24,000 – $90,000 per institution / year</li><li>Multi-year discount at board scale</li></ul>
+      </div>
+      <div class="card">
+        <div class="k">Line 2 · Volume</div>
+        <h3>Per candidate, per cycle</h3>
+        <p>The compounding line. Charged on candidates who actually sit an exam, so it scales with
+          the customer instead of ahead of them.</p>
+        <ul><li>$2.00 – $5.00 per candidate</li><li>Infrastructure cost ≈ $0.28</li></ul>
+      </div>
+      <div class="card">
+        <div class="k">Line 3 · Centres</div>
+        <h3>Exam centre software</h3>
+        <p>Per-centre licence for the gateway, machine health monitoring, and offline-tolerant
+          delivery client.</p>
+        <ul><li>$120 per centre / cycle</li><li>Optional hardware kit</li></ul>
+      </div>
+    </div>
+
+    <div class="pull">The public verification portal is free forever, for everyone. It's the reason
+      institutions get to claim credibility — which is the thing they're actually buying.</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Unit economics</th><th>Per candidate</th><th>At 1M candidates</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue (blended)</td><td class="num">$3.00</td><td class="num">$3.0M</td></tr>
+          <tr><td>Infrastructure cost</td><td class="num">$0.28</td><td class="num">$280K</td></tr>
+          <tr><td>Gross margin</td><td class="num">$2.72</td><td class="num">$2.72M · 91%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">$28B global assessment market · $4.2B in high-stakes secure delivery
+      specifically. Capturing 0.3% of that serviceable slice is a $12M revenue line.</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">The next four quarters</p>
+    <h2>From working prototype to signed contracts.</h2>
+    <div class="q" id="quarters">
+      <div class="q-item">
+        <div class="qh"><span class="qn">Q1</span><span class="qd">Jul–Sep 2026</span></div>
+        <h3>Close the loop, get real users</h3>
+        <ul>
+          <li>Miden testnet integration complete</li>
+          <li>Public verification portal shipped</li>
+          <li>2 design partners signed</li>
+          <li>First live pilot examination</li>
+        </ul>
+        <div class="q-metric">
+          <div><span class="mk">Candidates</span><span class="mv">5,000</span></div>
+          <div><span class="mk">ARR</span><span class="mv">$0</span></div>
+        </div>
+        <div class="bar" style="--fill:8%"><i></i></div>
+      </div>
+      <div class="q-item">
+        <div class="qh"><span class="qn">Q2</span><span class="qd">Oct–Dec 2026</span></div>
+        <h3>First revenue, first compliance</h3>
+        <ul>
+          <li>First paid contract closed</li>
+          <li>SOC 2 readiness + data residency</li>
+          <li>Exam centre client hardened</li>
+          <li>Proctoring module in beta</li>
+        </ul>
+        <div class="q-metric">
+          <div><span class="mk">Candidates</span><span class="mv">50,000</span></div>
+          <div><span class="mk">ARR</span><span class="mv">$45K</span></div>
+        </div>
+        <div class="bar" style="--fill:22%"><i></i></div>
+      </div>
+      <div class="q-item">
+        <div class="qh"><span class="qn">Q3</span><span class="qd">Jan–Mar 2027</span></div>
+        <h3>Repeatable sales motion</h3>
+        <ul>
+          <li>3 institutional contracts running</li>
+          <li>Biometric identity module live</li>
+          <li>First enterprise recruitment pilot</li>
+          <li>Third-party security audit</li>
+        </ul>
+        <div class="q-metric">
+          <div><span class="mk">Candidates</span><span class="mv">300,000</span></div>
+          <div><span class="mk">ARR</span><span class="mv">$180K</span></div>
+        </div>
+        <div class="bar" style="--fill:52%"><i></i></div>
+      </div>
+      <div class="q-item">
+        <div class="qh"><span class="qn">Q4</span><span class="qd">Apr–Jun 2027</span></div>
+        <h3>Enterprise scale</h3>
+        <ul>
+          <li>7 contracts, first national board</li>
+          <li>Monitoring agents in beta</li>
+          <li>Multi-region deployment</li>
+          <li>Series A conversations open</li>
+        </ul>
+        <div class="q-metric">
+          <div><span class="mk">Candidates</span><span class="mv">1.2M</span></div>
+          <div><span class="mk">ARR</span><span class="mv">$620K</span></div>
+        </div>
+        <div class="bar" style="--fill:100%"><i></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">Why us</p>
+    <h2>Built by someone who shipped it before pitching it.</h2>
+    <div class="founder">
+      <img src="{{FOUNDER}}" alt="Sidhanth K. Mahto" />
+      <div>
+        <div class="nm">Sidhanth K. Mahto</div>
+        <div class="rl">Founder · HorizonX Labs</div>
+        <p>teaOS didn't start as a deck. It started as a working system — five contracts deployed to
+          0G mainnet, a full question pipeline running against live TEE inference, and a Miden bridge
+          written against the raw Rust SDK because no higher-level tooling existed yet.</p>
+        <p>Most of the hard problems here weren't product decisions, they were engineering ones: a
+          Send-bound bug in the Miden client that had to be root-caused from compiler output, a
+          faucet policy that failed a VM kernel assertion, a silent success bug that would have
+          marked a paper ready with no timelock at all. Each one was found by running the thing, not
+          reading about it.</p>
+        <p>That's the bet. This is a category where the only credible founder is one who has already
+          gotten the cryptography to actually work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec band close">
+  <div class="wrap">
+    <p class="eyebrow">Where this goes</p>
+    <h2>Integrity shouldn't require trust.</h2>
+    <p class="lead">Every year, hundreds of millions of people sit an exam that decides what the rest
+      of their life looks like — and are asked to believe, on faith, that nobody opened the paper
+      early. When that faith breaks, it doesn't just cost a result. It costs a year, a rank, a job,
+      sometimes a career.</p>
+    <p class="lead">teaOS makes that faith unnecessary. Not by promising harder, but by building a
+      system where the promise is enforced by mathematics that answers to no one — and where any
+      candidate, on any phone, can check it for themselves in ten seconds.</p>
+    <div class="pull">We're not asking institutions to be more trustworthy. We're making
+      trustworthiness something they no longer have to be taken at their word for.</div>
+    <div class="cta">
+      <a class="pri" href="mailto:teaos@hoxlabs.xyz">teaos@hoxlabs.xyz</a>
+      <a href="mailto:teaos@hoxlabs.xyz?subject=teaOS%20pilot%20enquiry">Request a pilot</a>
+    </div>
+    <div class="foot">
+      <img src="{{HEX}}" alt="" />
+      <span class="fm">teaOS — Trusted Examination Architecture · built by HorizonX Labs</span>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  if (!document.documentElement.classList.contains('js')) return;
+
+  var gate = document.getElementById('gate');
+  var quarters = document.getElementById('quarters');
+  var state = document.getElementById('lockstate');
+  var gateDone = false, barsDone = false;
+
+  function openGate(){
+    if (gateDone || !gate) return;
+    gateDone = true;
+    setTimeout(function(){
+      gate.classList.add('open');
+      if (state) state.textContent = 'Released · exam start reached';
+    }, 2200);
+  }
+  function fillBars(){
+    if (barsDone || !quarters) return;
+    barsDone = true;
+    quarters.classList.add('lit');
+  }
+
+  function near(el){
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    return r.top < (window.innerHeight || 0) * 0.85 && r.bottom > 0;
+  }
+  function check(){
+    if (near(gate)) openGate();
+    if (near(quarters)) fillBars();
+    if (gateDone && barsDone) window.removeEventListener('scroll', check);
+  }
+
+  window.addEventListener('scroll', check, { passive: true });
+  window.addEventListener('resize', check, { passive: true });
+  check();
+
+  setTimeout(function(){ openGate(); fillBars(); }, 9000);
+})();
+</script>
