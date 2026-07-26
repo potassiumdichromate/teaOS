@@ -1,0 +1,34 @@
+[package]
+name = "nvei-miden-bridge"
+version = "0.1.0"
+edition = "2021"
+
+# Builds clean on Linux/WSL — confirmed via a real build inside WSL Ubuntu
+# 24.04 on 2026-07-26 (`cargo check -p nvei-miden-bridge`, zero errors).
+# Does NOT build on native Windows: miden-client transitively pulls
+# miden-node-proto-build, whose build script has a reproducible Windows-only
+# include-path bug (confirmed independent of PROTOC/protoc availability,
+# reproduced on two release lines) — see docs/MIDEN_INTEGRATION.md "Windows
+# build blocker" for the exact repro. Build/run this crate from WSL or a
+# Linux CI runner, not native Windows.
+#
+# Version pins are load-bearing, not arbitrary: miden-client 0.16.0-alpha.1
+# internally requires miden-protocol/miden-standards at exactly
+# 0.16.0-alpha.4 (confirmed by reading its own Cargo.toml) — pinning our own
+# miden-standards/miden-protocol deps to anything else (e.g. the newer
+# 0.16.0-beta.1) produces a real, confirmed two-different-Account-types
+# compile error, not a hypothetical risk.
+[dependencies]
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+anyhow = "1"
+rand = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+miden-client = { version = "=0.16.0-alpha.1", features = ["std", "tonic"] }
+miden-standards = "=0.16.0-alpha.4"
+miden-protocol = "=0.16.0-alpha.4"
+miden-client-sqlite-store = "=0.16.0-alpha.1"

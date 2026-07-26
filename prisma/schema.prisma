@@ -1,0 +1,476 @@
+// NVEI — Prisma schema
+// See docs/DATABASE.md for entity-relationship notes and rationale.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Identity & Auth
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  TEACHER
+  ADMIN
+  CENTER
+  STUDENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  evmAddress   String? // 0G Chain-facing wallet, optional link
+  midenAccountId String? // Miden testnet account id, optional link
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  teacherProfile TeacherProfile?
+  adminProfile   AdminProfile?
+  centerProfile  CenterProfile?
+  studentProfile StudentProfile?
+  auditLogs      AuditLog[]
+  securityEvents SecurityEvent[]
+
+  @@index([role])
+}
+
+model TeacherProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  fullName  String
+  subjects  Subject[] @relation("TeacherSubjects")
+  chapters  Chapter[] @relation("TeacherChapters")
+  questions Question[]
+}
+
+model AdminProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id])
+  fullName String
+  designation String?
+}
+
+model CenterProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  centerCode   String   @unique
+  name         String
+  address      String
+  examPCs      ExamPC[]
+  sessions     StudentExamSession[]
+}
+
+model StudentProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  applicationId String   @unique
+  fullName      String
+  dob           DateTime
+  sessions      StudentExamSession[]
+  results       EvaluationResult[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Question Bank
+// ─────────────────────────────────────────────────────────────────────────
+
+model Subject {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  chapters Chapter[]
+  teachers TeacherProfile[] @relation("TeacherSubjects")
+  questions Question[]
+  blueprintAllocations BlueprintSubjectAllocation[]
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  name      String
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  teachers  TeacherProfile[] @relation("TeacherChapters")
+  questions Question[]
+  blueprintAllocations BlueprintChapterAllocation[]
+
+  @@unique([subjectId, name])
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum BloomLevel {
+  REMEMBER
+  UNDERSTAND
+  APPLY
+  ANALYZE
+  EVALUATE
+  CREATE
+}
+
+enum QuestionStatus {
+  DRAFT
+  SUBMITTED
+  VALIDATING
+  ACCEPTED
+  REJECTED
+}
+
+// Plaintext question content NEVER lives in Postgres once ACCEPTED — only
+// the encrypted blob on 0G Storage does. Fields below are metadata only;
+// `storageRoot` + `contentKeyRef` are what you need to fetch/decrypt.
+model Question {
+  id                 String         @id @default(cuid())
+  teacherId          String
+  teacher            TeacherProfile @relation(fields: [teacherId], references: [id])
+  subjectId          String
+  subject            Subject        @relation(fields: [subjectId], references: [id])
+  chapterId          String
+  chapter            Chapter        @relation(fields: [chapterId], references: [id])
+  difficultySuggested Difficulty
+  bloomLevelSuggested BloomLevel
+  status             QuestionStatus @default(DRAFT)
+
+  // Populated only while status=DRAFT|SUBMITTED (pre-encryption working copy);
+  // cleared once ACCEPTED/REJECTED and moved to encrypted storage.
+  draftPayload       Json?
+
+  storageRoot        String?  // 0G Storage merkle root of the encrypted blob
+  contentHash        String?  // sha256 of plaintext payload, used for on-chain anchor + dup-check
+  chainTxHash        String?  // 0G Chain QuestionRegistry anchor tx
+  chainBlockNumber   BigInt?
+
+  aiReport           AIValidationReport?
+  auditLogs          AuditLog[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  paperQuestions      PaperQuestion[]
+
+  @@index([status])
+  @@index([subjectId, chapterId])
+  @@index([contentHash])
+}
+
+// One-to-one result of a single 0G Compute validation pass (private trust mode).
+model AIValidationReport {
+  id               String   @id @default(cuid())
+  questionId       String   @unique
+  question         Question @relation(fields: [questionId], references: [id])
+
+  duplicatePct     Float
+  similarQuestionIds String[] // Question.id[] of nearest matches
+  grammarIssues    Json     // structured list from model output
+  biasFlags        Json
+  difficultyPredicted Difficulty
+  bloomLevelPredicted BloomLevel
+  topicClassified  String
+  estimatedSolvingSeconds Int
+  weightageSuggested Float
+
+  modelName        String   // e.g. "glm-5.2"
+  providerAddress  String   // 0G Compute provider on-chain address
+  trustMode        String   // "private" | "verified" | "standard"
+  attestationRef   String?  // pointer to saved TEE attestation report
+
+  passedThresholds Boolean
+  createdAt        DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Blueprint & Paper Generation
+// ─────────────────────────────────────────────────────────────────────────
+
+model Blueprint {
+  id                String   @id @default(cuid())
+  title             String
+  totalMarks        Int
+  totalQuestions    Int
+  negativeMarking   Float    // e.g. 0.25 marks deducted per wrong answer
+  publishedAt       DateTime?
+  createdAt         DateTime @default(now())
+
+  subjectAllocations BlueprintSubjectAllocation[]
+  chapterAllocations BlueprintChapterAllocation[]
+  papers             Paper[]
+}
+
+model BlueprintSubjectAllocation {
+  id          String    @id @default(cuid())
+  blueprintId String
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id])
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  questionCount Int
+  marksEach   Int
+
+  @@unique([blueprintId, subjectId])
+}
+
+model BlueprintChapterAllocation {
+  id            String    @id @default(cuid())
+  blueprintId   String
+  blueprint     Blueprint @relation(fields: [blueprintId], references: [id])
+  chapterId     String
+  chapter       Chapter   @relation(fields: [chapterId], references: [id])
+  difficultyPct Json      // { EASY: 40, MEDIUM: 40, HARD: 20 }
+  questionCount Int
+
+  @@unique([blueprintId, chapterId])
+}
+
+enum PaperStatus {
+  PENDING
+  ASSEMBLING
+  READY
+  LOCKED   // exam window closed, key reclaimed / no longer releasable
+}
+
+model Paper {
+  id               String      @id @default(cuid())
+  blueprintId      String
+  blueprint        Blueprint   @relation(fields: [blueprintId], references: [id])
+  status           PaperStatus @default(PENDING)
+
+  storageRoot      String?     // encrypted master paper blob on 0G Storage
+  masterPaperHash  String?
+  chainTxHash      String?     // 0G Chain PaperRegistry anchor tx
+
+  midenNoteId      String?     // Miden testnet P2IDE note carrying wrapped content key
+  examStartAt      DateTime
+  examWindowCloseAt DateTime
+
+  paperQuestions   PaperQuestion[]
+  schedule         ExamSchedule?
+  sessions         StudentExamSession[]
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+// Fixed composition of the master paper (same for every student); per-student
+// display order/option order is a deterministic seed stored on the session,
+// not a DB row per student — avoids O(students × questions) rows.
+model PaperQuestion {
+  id         String   @id @default(cuid())
+  paperId    String
+  paper      Paper    @relation(fields: [paperId], references: [id])
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  marks      Int
+
+  @@unique([paperId, questionId])
+}
+
+model ExamSchedule {
+  id        String   @id @default(cuid())
+  paperId   String   @unique
+  paper     Paper    @relation(fields: [paperId], references: [id])
+  name      String
+  startAt   DateTime
+  endAt     DateTime
+  centers   Center[]
+}
+
+model Center {
+  id           String   @id @default(cuid())
+  centerCode   String   @unique
+  name         String
+  scheduleId   String?
+  schedule     ExamSchedule? @relation(fields: [scheduleId], references: [id])
+}
+
+model ExamPC {
+  id           String   @id @default(cuid())
+  centerId     String
+  center       CenterProfile @relation(fields: [centerId], references: [id])
+  machineCode  String
+  healthStatus String   @default("UNKNOWN") // ONLINE | OFFLINE | DEGRADED
+  lastHeartbeatAt DateTime?
+
+  @@unique([centerId, machineCode])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Exam Session, Answers, Evaluation, AIR
+// ─────────────────────────────────────────────────────────────────────────
+
+enum SessionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  EVALUATED
+}
+
+model StudentExamSession {
+  id                String        @id @default(cuid())
+  studentId         String
+  student           StudentProfile @relation(fields: [studentId], references: [id])
+  paperId           String
+  paper             Paper         @relation(fields: [paperId], references: [id])
+  centerId          String
+  center            CenterProfile @relation(fields: [centerId], references: [id])
+
+  randomizationSeed String        // deterministic per-student question/option order
+  status            SessionStatus @default(NOT_STARTED)
+
+  startedAt         DateTime?
+  submittedAt       DateTime?
+
+  answerStorageRoot String?       // encrypted answers blob on 0G Storage
+  submissionHash    String?
+  chainTxHash       String?       // 0G Chain SubmissionRegistry anchor tx
+  midenNoteId       String?       // Miden private submission note (nullifier prevents resubmission)
+
+  result            EvaluationResult?
+
+  @@unique([studentId, paperId])
+}
+
+model EvaluationResult {
+  id               String   @id @default(cuid())
+  sessionId        String   @unique
+  session          StudentExamSession @relation(fields: [sessionId], references: [id])
+  studentId        String
+  student          StudentProfile @relation(fields: [studentId], references: [id])
+
+  rawScore         Float
+  correctCount     Int
+  incorrectCount   Int
+  unattemptedCount Int
+
+  resultHash       String
+  chainTxHash      String?  // 0G Chain ResultRegistry anchor tx
+  midenProofRef    String?  // Miden testnet proof reference for the evaluation account transition
+
+  airRanking       AIRRanking?
+
+  evaluatedAt      DateTime @default(now())
+}
+
+model AIRRanking {
+  id           String   @id @default(cuid())
+  resultId     String   @unique
+  result       EvaluationResult @relation(fields: [resultId], references: [id])
+  rank         Int
+  tieBreakRule String?
+  percentile   Float
+  resultListHash String // hash of the full sorted list, anchored once per publication batch
+  publishedAt  DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cross-cutting: audit, security, chain anchors, Miden notes
+// ─────────────────────────────────────────────────────────────────────────
+
+enum AuditAction {
+  TEACHER_LOGIN
+  ADMIN_LOGIN
+  TEACHER_SUBMISSION
+  AI_VALIDATION
+  ENCRYPTION
+  STORAGE_UPLOAD
+  CHAIN_ANCHOR
+  BLUEPRINT_PUBLISHED
+  PAPER_GENERATION
+  CENTER_AUTHENTICATION
+  STUDENT_LOGIN
+  ANSWER_SUBMISSION
+  EVALUATION
+  AIR_PUBLICATION
+  VERIFICATION_CHECK
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+  questionId  String?
+  question    Question?   @relation(fields: [questionId], references: [id])
+  metadata    Json
+  batchAnchorId String?   // FK-by-value into ChainAnchor.id once this log's batch is anchored
+  createdAt   DateTime    @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
+
+enum SecurityEventSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  severity  SecurityEventSeverity
+  category  String   // e.g. "AUTH_FAILURE", "RATE_LIMIT", "INTEGRITY_MISMATCH"
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  detail    Json
+  createdAt DateTime @default(now())
+
+  @@index([severity])
+}
+
+enum ChainNetwork {
+  ZG_MAINNET
+  ZG_TESTNET
+}
+
+// Generic anchor record so every entity's on-chain reference is queryable
+// from one table (used by NTA Admin Dashboard's "Blockchain Events" view).
+model ChainAnchor {
+  id             String       @id @default(cuid())
+  network        ChainNetwork
+  contractName   String       // "QuestionRegistry" | "PaperRegistry" | "SubmissionRegistry" | "ResultRegistry" | "AuditLogRegistry"
+  entityType     String
+  entityId       String
+  dataHash       String
+  txHash         String       @unique
+  blockNumber    BigInt
+  createdAt      DateTime     @default(now())
+
+  @@index([entityType, entityId])
+}
+
+enum MidenNotePurpose {
+  PAPER_KEY_TIMELOCK
+  SUBMISSION_COMMITMENT
+}
+
+enum MidenNoteStatus {
+  PENDING
+  COMMITTED
+  CONSUMED
+  RECLAIMED
+}
+
+// Tracks Miden testnet notes referenced elsewhere (Paper.midenNoteId,
+// StudentExamSession.midenNoteId) so the Confidential Compute / Storage
+// Explorer dashboards can show live note status without a Miden RPC round trip.
+model MidenNote {
+  id             String           @id @default(cuid())
+  noteId         String           @unique // Miden protocol note id
+  purpose        MidenNotePurpose
+  status         MidenNoteStatus  @default(PENDING)
+  timelockHeight BigInt?
+  reclaimHeight  BigInt?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}

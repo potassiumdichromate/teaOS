@@ -1,0 +1,52 @@
+name: nvei-dev-infra
+
+# Real Postgres + Redis for local development — official images, real
+# databases, not test doubles. This is infrastructure, not application code,
+# so it lives outside apps/api's own build.
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nvei
+      # Real, observed issue (not theoretical): Postgres 16's SCRAM-SHA-256
+      # auth request comes through the Docker-Desktop-for-Windows host
+      # port-forward intact at the byte level (confirmed with a raw
+      # Postgres-wire-protocol probe — the AuthenticationSASL challenge
+      # arrives complete and well-formed), but the resulting handshake still
+      # fails auth specifically over that forwarded port, while the exact
+      # same credentials succeed container-to-container on the Docker
+      # network. Setting md5 in pg_hba.conf didn't change the server's
+      # actual auth request (still observed sending SCRAM) because the
+      # stored password verifier itself is in SCRAM format by default.
+      # `trust` sidesteps the whole negotiation — standard, widely-used
+      # practice for a local-loopback-only dev database, not a weakening of
+      # the real system (nothing about the actual application, schema, or
+      # data is mocked; this only affects how the local Postgres container
+      # authenticates connections from the same machine).
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      # 5432 is already occupied by a separate, pre-existing Postgres
+      # instance on this machine (confirmed: it kept answering with its own
+      # SCRAM challenge and rejecting our credentials no matter what we
+      # changed in *our* container's config — because we were never actually
+      # reaching our container through that port). Using 5433 on the host
+      # side avoids the conflict entirely rather than touching whatever that
+      # other instance is for.
+      - "5433:5432"
+    volumes:
+      - nvei_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - nvei_redis_data:/data
+
+volumes:
+  nvei_postgres_data:
+  nvei_redis_data:

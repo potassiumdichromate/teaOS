@@ -1,0 +1,9 @@
+[workspace]
+resolver = "2"
+members = ["bridge"]
+
+# Account/note components (paper-key-timelock, submission-note) are added as
+# further workspace members once their .masp packages are authored per
+# docs/MIDEN_INTEGRATION.md — kept out of this initial scaffold so `cargo
+# build` here stays fast and doesn't require the full `midenup` toolchain to
+# just stand up the HTTP bridge.

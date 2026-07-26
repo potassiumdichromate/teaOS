@@ -1,0 +1,30 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+
+# Prisma
+prisma/dev.db
+
+# Hardhat
+contracts/evm/cache/
+contracts/evm/artifacts/
+contracts/evm/typechain-types/
+
+# Miden
+contracts/miden/target/
+contracts/miden/**/store.sqlite3
+contracts/miden/**/miden-client.toml
+contracts/miden/**/keystore/
+
+# Vite
+apps/web/dist/
+apps/web/.vite/
+
+# misc
+.idea/
+.vscode/
+*.tsbuildinfo
