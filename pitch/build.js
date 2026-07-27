@@ -7,7 +7,8 @@ const map = {
   '{{LOGO_DARK}}':  uri('logo-dark.png', 'image/png'),
   '{{LOGO_LIGHT}}': uri('logo-light.png', 'image/png'),
   '{{HEX}}':        uri('hex.png', 'image/png'),
-  '{{FOUNDER}}':    uri('founder.jpg', 'image/jpeg'),
+  '{{SIDHANTH}}':   uri('founder-sidhanth.jpg', 'image/jpeg'),
+  '{{RAY}}':        uri('founder-ray.jpg', 'image/jpeg'),
   '{{FLOW}}':       uri('flow.png', 'image/png'),
 };
 for (const [k, v] of Object.entries(map)) html = html.split(k).join(v);

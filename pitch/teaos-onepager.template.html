@@ -283,69 +283,103 @@ tr:last-child td{border-bottom:0}
 }
 </style>
 <style>
-.svc{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
-.svc-item{background:var(--panel);padding:1.35rem 1.15rem}
-.svc-item .st{font-family:var(--mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--tx-3);margin-bottom:.5rem}
-.svc-item h3{margin-bottom:.2rem}
-.svc-item .lang{font-family:var(--mono);font-size:.6875rem;color:var(--acc-tx);margin-bottom:.7rem;
-  letter-spacing:.03em}
-.svc-item p{margin:0 0 .8rem;font-size:.9375rem;color:var(--tx-2)}
-.can{list-style:none;margin:0;padding:0;font-size:.875rem}
-.can li{display:flex;gap:.5rem;align-items:baseline;padding:.22rem 0;color:var(--tx-2);line-height:1.5}
-.can .y{color:var(--acc-tx);font-family:var(--mono);font-size:.75rem;flex:0 0 auto}
-.can .n{color:var(--deny);font-family:var(--mono);font-size:.75rem;flex:0 0 auto}
-.keys{display:grid;gap:1rem;margin-top:1.75rem}
-.keyc{border:1px solid var(--hair);border-radius:4px;padding:1.25rem 1.15rem;background:var(--panel)}
-.keyc.eph{border-color:var(--acc)}
-.keyc .kt{font-family:var(--mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--tx-3);margin-bottom:.5rem}
-.keyc.eph .kt{color:var(--acc-tx)}
-.keyc h3{margin-bottom:.5rem}
-.keyc p{margin:0 0 .75rem;font-size:.9375rem;color:var(--tx-2)}
-.keyc dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;font-size:.8125rem}
-.keyc dt{font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);letter-spacing:.04em;
-  text-transform:uppercase;padding-top:.12rem}
-.keyc dd{margin:0;color:var(--tx-2)}
-.req{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
-.req-row{background:var(--panel);padding:1.15rem;display:grid;gap:.75rem}
-.req-row .need{font-size:.9375rem;color:var(--tx);font-weight:500;letter-spacing:-.01em}
-.req-row .why{font-size:.875rem;color:var(--tx-2);margin:0}
-.req-row .pick{font-family:var(--mono);font-size:.75rem;color:var(--acc-tx);background:var(--acc-soft);
-  border:1px solid var(--hair-2);border-radius:3px;padding:.45rem .6rem;align-self:start;
-  letter-spacing:.02em;line-height:1.4}
-.fail{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
-.fail-row{background:var(--panel);padding:1.15rem}
-.fail-row .mode{font-family:var(--mono);font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--deny);margin-bottom:.45rem}
-.fail-row h3{font-size:1rem;margin-bottom:.4rem}
-.fail-row p{margin:0;font-size:.9375rem;color:var(--tx-2)}
-.fail-row .fix{margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--hair);
-  font-size:.875rem;color:var(--tx-2)}
-.fail-row .fix b{color:var(--acc-tx);font-weight:500;font-family:var(--mono);font-size:.75rem;
-  letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:.2rem}
-.checks{list-style:none;margin:1.75rem 0 0;padding:0;display:grid;gap:1px;
-  background:var(--hair);border:1px solid var(--hair)}
-.checks li{background:var(--panel);padding:.9rem 1.1rem;display:grid;
-  grid-template-columns:1.6rem 1fr;gap:.75rem;align-items:baseline}
-.checks .tick{color:var(--acc-tx);font-family:var(--mono);font-size:.8125rem}
-.checks .ct{font-size:.9375rem;color:var(--tx)}
-.checks .cd{font-size:.8125rem;color:var(--tx-2);display:block;margin-top:.15rem}
+.sys{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
+.sys-row{background:var(--panel);padding:1.05rem 1.1rem;display:grid;gap:.5rem}
+.sys-call{font-family:var(--mono);font-size:.8125rem;color:var(--acc-tx);letter-spacing:-.01em;
+  word-break:break-word}
+.sys-row p{margin:0;font-size:.9375rem;color:var(--tx-2)}
+.sys-row .guard{font-family:var(--mono);font-size:.6875rem;color:var(--tx-3);letter-spacing:.04em;
+  line-height:1.5}
+.ring{margin-top:1.75rem;border:1px solid var(--hair);border-radius:4px;overflow:hidden}
+.ring-l{padding:1.1rem;background:var(--panel);border-bottom:1px solid var(--hair)}
+.ring-l:last-child{border-bottom:0}
+.ring-l.k{background:var(--band);color:var(--band-tx)}
+.ring-l .rl{font-family:var(--mono);font-size:.625rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--tx-3);margin-bottom:.45rem}
+.ring-l.k .rl{color:var(--mint)}
+.ring-l h3{font-size:1rem;margin-bottom:.35rem}
+.ring-l.k h3{color:var(--band-tx)}
+.ring-l p{margin:0 0 .7rem;font-size:.9375rem;color:var(--tx-2)}
+.ring-l.k p{color:var(--band-tx-2)}
+.ring-l .items{display:flex;flex-wrap:wrap;gap:.35rem}
+.ring-l .items span{font-family:var(--mono);font-size:.6875rem;padding:.35rem .55rem;border-radius:3px;
+  border:1px solid var(--hair-2);color:var(--tx-2);background:var(--bg)}
+.ring-l.k .items span{border-color:rgba(82,199,165,.3);color:var(--mint);background:rgba(82,199,165,.07)}
+.tl{margin-top:1.75rem}
+.tl-item{position:relative;padding:0 0 1.6rem 1.6rem;border-left:2px solid var(--hair)}
+.tl-item:last-child{border-left-color:transparent;padding-bottom:0}
+.tl-item::before{content:"";position:absolute;left:-6px;top:.4rem;width:10px;height:10px;
+  border-radius:50%;background:var(--hair-2);border:2px solid var(--bg)}
+.tl-item.key::before{background:var(--acc)}
+.js .tl-item.key::before{animation:beat 2.4s ease-in-out infinite}
+@keyframes beat{0%,100%{box-shadow:0 0 0 0 rgba(15,143,115,.45)}
+  55%{box-shadow:0 0 0 7px rgba(15,143,115,0)}}
+.tl-t{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap;margin-bottom:.3rem}
+.tl-when{font-family:var(--mono);font-size:.75rem;color:var(--acc-tx);letter-spacing:.04em;
+  background:var(--acc-soft);padding:.15rem .45rem;border-radius:3px}
+.tl-item h3{font-size:1rem}
+.tl-item p{margin:0 0 .5rem;font-size:.9375rem;color:var(--tx-2)}
+.tl-meta{display:grid;gap:.3rem;font-family:var(--mono);font-size:.6875rem;letter-spacing:.03em;
+  line-height:1.5}
+.tl-meta span{color:var(--tx-3)}
+.tl-meta b{color:var(--tx-2);font-weight:400}
+.tl-read{color:var(--deny)}
+.tl-item.key .tl-read{color:var(--acc-tx)}
+.vs{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
+.vs-row{background:var(--panel);padding:1.05rem 1.1rem;display:grid;gap:.7rem}
+.vs-k{font-size:.9375rem;color:var(--tx);font-weight:500;letter-spacing:-.01em}
+.vs-a,.vs-b{font-size:.875rem;line-height:1.55;padding-left:.75rem;border-left:2px solid var(--hair-2)}
+.vs-a{color:var(--tx-2)}
+.vs-b{color:var(--tx);border-left-color:var(--acc)}
+.vs-l{display:block;font-family:var(--mono);font-size:.625rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--tx-3);margin-bottom:.2rem}
+.vs-b .vs-l{color:var(--acc-tx)}
+.dmn{display:grid;gap:1px;background:var(--hair);border:1px solid var(--hair);margin-top:1.75rem}
+.dmn-item{background:var(--panel);padding:1.3rem 1.15rem}
+.dmn-item .dh{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.55rem;flex-wrap:wrap}
+.dmn-item .dn{font-family:var(--mono);font-size:.6875rem;color:var(--acc-tx);background:var(--acc-soft);
+  padding:.2rem .45rem;border-radius:3px;letter-spacing:.03em}
+.dmn-item h3{font-size:1rem}
+.dmn-item p{margin:0 0 .8rem;font-size:.9375rem;color:var(--tx-2)}
+.sig{display:grid;gap:.45rem;margin:0}
+.sig div{display:grid;grid-template-columns:5.5rem 1fr;gap:.6rem;font-size:.8125rem;line-height:1.5}
+.sig dt{font-family:var(--mono);font-size:.625rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tx-3);padding-top:.15rem}
+.sig dd{margin:0;color:var(--tx-2)}
+.team{display:grid;gap:1.5rem;margin-top:1.75rem}
+.person{background:var(--panel);border:1px solid var(--hair);border-radius:4px;overflow:hidden}
+.person img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center 22%;filter:grayscale(1)}
+.person .pb{padding:1.15rem}
+.person .nm{font-size:1.125rem;font-weight:600;letter-spacing:-.02em}
+.person .rl{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc-tx);margin:.3rem 0 .85rem}
+.person p{margin:0 0 .75rem;font-size:.9375rem;color:var(--tx-2)}
+.person p:last-child{margin-bottom:0}
+.cred{display:flex;flex-wrap:wrap;gap:.35rem;margin:0 0 .9rem}
+.cred span{font-family:var(--mono);font-size:.6875rem;padding:.3rem .5rem;border-radius:3px;
+  border:1px solid var(--hair-2);color:var(--tx-2);background:var(--bg);letter-spacing:.02em}
 @media (min-width:40rem){
-  .svc{grid-template-columns:1fr 1fr}
-  .keys{grid-template-columns:1fr 1fr}
-  .req-row{grid-template-columns:1fr 13rem;align-items:start;gap:1.25rem}
-  .fail{grid-template-columns:1fr 1fr}
+  .sys-row{grid-template-columns:14rem 1fr;align-items:start;gap:1.25rem}
+  .sys-row .guard{grid-column:1/-1;padding-top:.5rem;border-top:1px solid var(--hair)}
+  .vs-row{grid-template-columns:1fr 1fr;align-items:start;gap:1rem 1.25rem}
+  .vs-k{grid-column:1/-1}
+  .dmn{grid-template-columns:1fr 1fr}
+  .team{grid-template-columns:1fr 1fr;gap:1.25rem}
+}
+@media (min-width:60rem){
+  .person{display:grid;grid-template-columns:11rem 1fr}
+  .person img{height:100%;aspect-ratio:auto}
 }
 </style>
 
 <header class="hero">
   <div class="wrap">
     <img class="hero-logo" src="{{LOGO_DARK}}" alt="teaOS" />
-    <h1>Exams you don't have to take anyone's word for.</h1>
-    <p class="lead">teaOS is a decentralized operating system for secure, verifiable, AI-powered
-      digital examinations — where the question paper cannot be opened early by anyone, including
-      the people who run the exam.</p>
+    <h1>The operating system for examinations.</h1>
+    <p class="lead">Every high-stakes exam on earth runs on improvised software — a question bank
+      from one vendor, delivery from another, proctoring from a third. teaOS is the layer
+      underneath all of it: a kernel that makes integrity a property of the system rather than a
+      promise from the institution.</p>
     <ul class="tea">
       <li><b>T</b> — Trusted</li>
       <li><b>E</b> — Examination</li>
@@ -358,116 +392,168 @@ tr:last-child td{border-bottom:0}
 <section class="sec">
   <div class="wrap">
     <p class="eyebrow">The problem</p>
-    <h2>Every paper leak ends the same way.</h2>
-    <p class="lead">An investigation. A committee. A promise it won't happen again. Then the same
-      system gets rebuilt, exactly as it was.</p>
-    <p>The reason isn't that people running exams are careless. It's structural. In every exam
-      system operating today, some human being holds the question paper before the exam starts —
-      a database administrator, a printing vendor, a regional officer, someone with production
-      access at 2am. Security is a rule asking them not to look.</p>
-    <p>A rule has no enforcement layer. And when something does go wrong, the audit logs that
-      would prove it sit on servers owned by the same institution being investigated.</p>
-    <div class="pull">Every exam system in the world currently asks candidates to trust an
-      administrator. teaOS removes the administrator from the trust equation — not with policy,
-      with cryptography.</div>
+    <h2>Examinations never got an operating system.</h2>
+    <p class="lead">Every other domain that handles something valuable eventually grew a layer that
+      handles it properly. Payments got settlement rails. Healthcare got records systems.
+      Examinations got a spreadsheet, a mail merge, and a lot of trust.</p>
+    <p>What institutions run today isn't a platform — it's an assembly. A question bank in one
+      vendor's database. Delivery through a second vendor's portal. Proctoring bolted on from a
+      third. Results computed somewhere else entirely. Every handoff between them is a place where
+      integrity has to be assumed, because nothing in the stack can prove it.</p>
+    <p>So the failures are structural, not moral. A paper leaks because somebody legitimately held
+      it. A result is disputed because the only evidence lives on the accused institution's own
+      servers. A candidate who suspects something has no way to check anything at all. These aren't
+      separate problems — they're the same missing layer, showing up in four places.</p>
+    <div class="pull">You cannot patch your way to trustworthiness on top of an architecture that
+      requires trust at every seam. That layer has to exist underneath, or it doesn't exist.</div>
     <div class="stat-row">
       <div class="stat"><div class="n">$28B</div><div class="k">Global assessment and testing market</div></div>
       <div class="stat"><div class="n">300M+</div><div class="k">People sitting high-stakes exams each year</div></div>
-      <div class="stat"><div class="n">17M</div><div class="k">Candidates hit by cancelled exams in India alone, in five years</div></div>
-      <div class="stat"><div class="n">Zero</div><div class="k">Independent proof a candidate can check today</div></div>
+      <div class="stat"><div class="n">4–6</div><div class="k">Separate vendors in a typical exam stack</div></div>
+      <div class="stat"><div class="n">Zero</div><div class="k">Of them can prove the exam wasn't compromised</div></div>
     </div>
-    <p class="cap">Governments keep legislating harder penalties for leaking. None of it changes
-      who holds the paper beforehand.</p>
   </div>
 </section>
 
 <section class="sec alt">
   <div class="wrap">
-    <p class="eyebrow">What we're building</p>
-    <h2>A complete operating system for examinations.</h2>
-    <p class="lead">Not a proctoring plugin. Not a question bank with a login screen. The whole
-      stack — authoring through verification — with a cryptographic guarantee under every layer.</p>
-    <p>Institutions today stitch together four or five vendors: one for the question bank, one for
-      delivery, one for proctoring, one for results. Every seam between them is a place where trust
-      has to be assumed and integrity can't be proven. teaOS collapses that into one system where
-      each stage hands the next a verifiable artifact instead of a promise.</p>
+    <p class="eyebrow">The system model</p>
+    <h2>A kernel, a set of primitives, and everything else in userland.</h2>
+    <p class="lead">teaOS is structured the way operating systems are structured, because the
+      problem has the same shape: many different workloads, sharing one substrate, that must not be
+      able to interfere with each other or with the guarantees underneath them.</p>
 
-    <div class="stack">
-      <div class="layer">
-        <div class="lh"><span class="ln">Layer 03</span><span class="lt">Applications</span></div>
-        <div class="mods">
-          <span class="mod on">Question authoring</span>
-          <span class="mod on">AI validation</span>
-          <span class="mod on">Blueprint engine</span>
-          <span class="mod on">Paper assembly</span>
-          <span class="mod on">Centre gateway</span>
-          <span class="mod on">Delivery client</span>
-          <span class="mod on">Evaluation</span>
-          <span class="mod on">Rank generation</span>
-          <span class="mod on">Public verification</span>
-          <span class="mod">Proctoring + identity</span>
-          <span class="mod">Multi-board tenancy</span>
-          <span class="mod soon">Autonomous agents</span>
-          <span class="mod soon">Adaptive testing</span>
-          <span class="mod soon">Credential portability</span>
+    <div class="ring">
+      <div class="ring-l">
+        <div class="rl">Ring 3 · Userland</div>
+        <h3>Exam workloads</h3>
+        <p>Different exam types are different programs running on the same kernel. A recruitment
+          assessment and a national entrance test have wildly different rules, scale, and scoring —
+          and identical integrity guarantees, because those don't come from the application.</p>
+        <div class="items">
+          <span>Entrance tests</span><span>Recruitment assessment</span><span>Certification</span>
+          <span>Semester exams</span><span>Licensing</span><span>Internal promotion</span>
         </div>
       </div>
-      <div class="layer">
-        <div class="lh"><span class="ln">Layer 02</span><span class="lt">teaOS core</span></div>
-        <div class="mods">
-          <span class="mod on">Envelope encryption</span>
-          <span class="mod on">Timelock orchestration</span>
-          <span class="mod on">Deterministic assembly</span>
-          <span class="mod on">Per-candidate seeding</span>
-          <span class="mod on">Anchoring + audit</span>
-          <span class="mod on">Role + access policy</span>
+      <div class="ring-l">
+        <div class="rl">Ring 2 · System services</div>
+        <h3>Long-running daemons</h3>
+        <p>Background processes the institution doesn't operate directly: invigilation, collusion
+          analysis, bank health, integrity auditing. They observe, they never hold authority.</p>
+        <div class="items">
+          <span>Invigilation</span><span>Collusion analysis</span><span>Bank health</span>
+          <span>Blueprint co-pilot</span><span>Integrity auditor</span>
         </div>
       </div>
-      <div class="layer infra">
-        <div class="lh"><span class="ln">Layer 01</span><span class="lt">Decentralized infrastructure</span></div>
-        <div class="mods">
-          <span class="mod">0G Compute — TEE inference</span>
-          <span class="mod">0G Storage — encrypted blobs</span>
-          <span class="mod">0G Chain — anchoring</span>
-          <span class="mod">Miden — ZK timelock + notes</span>
+      <div class="ring-l k">
+        <div class="rl">Ring 0 · Kernel</div>
+        <h3>teaOS core</h3>
+        <p>Small, fixed, and identical for every customer. It does not have per-tenant branches, an
+          admin mode, or a support override — the guarantees it provides are guarantees precisely
+          because nothing above it can renegotiate them.</p>
+        <div class="items">
+          <span>seal</span><span>schedule</span><span>derive</span><span>commit</span>
+          <span>attest</span><span>anchor</span><span>verify</span>
+        </div>
+      </div>
+      <div class="ring-l">
+        <div class="rl">Ring -1 · Hardware abstraction</div>
+        <h3>Infrastructure adapters</h3>
+        <p>The kernel talks to decentralized infrastructure through narrow interfaces. Backends are
+          implementation detail — the guarantee is defined by the kernel contract, not the vendor.</p>
+        <div class="items">
+          <span>0G Compute</span><span>0G Storage</span><span>0G Chain</span><span>Miden</span>
         </div>
       </div>
     </div>
-    <div class="legend">
-      <span><i class="on"></i> Shipped</span>
-      <span><i></i> In build</span>
-      <span><i class="soon"></i> Roadmap</span>
-    </div>
+    <p class="cap">The reason this matters commercially: an institution buying teaOS isn't buying an
+      exam product they'll outgrow. They're buying a substrate that every future assessment they
+      run can sit on, including ones we haven't built the userland for yet.</p>
   </div>
 </section>
 
 <section class="sec">
   <div class="wrap">
-    <p class="eyebrow">Architecture</p>
-    <h2>Four services, split along trust boundaries.</h2>
-    <p class="lead">The system isn't decomposed for scaling convenience. It's decomposed so that
-      the component handling your web session and the component holding decryption keys are
-      different processes, with different privileges, that cannot be collapsed into each other.</p>
+    <p class="eyebrow">Kernel interface</p>
+    <h2>Seven primitives. Everything else is composition.</h2>
+    <p class="lead">These are the operations the kernel exposes. An exam — any exam — is a sequence
+      of calls into them. Each one carries a guarantee the caller cannot weaken, no matter what
+      privileges the caller holds.</p>
+
+    <div class="sys">
+      <div class="sys-row">
+        <div class="sys-call">seal(payload, until_block)</div>
+        <p>Encrypts a payload and places its key beyond retrieval until a specific block height.
+          The caller receives a reference, never the key.</p>
+        <div class="guard">Guarantee — no caller, at any privilege level, can produce the key before the height is reached.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">schedule(window)</div>
+        <p>Binds a human schedule to block heights, recording the derivation so the mapping from
+          "09:00 Tuesday" to a specific block is itself auditable.</p>
+        <div class="guard">Guarantee — the release condition is not a clock, so it cannot be moved by touching a server.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">derive(session, seed)</div>
+        <p>Deterministically renders one candidate's view of a paper — question order, option
+          order — from a stored seed, reproducibly, forever.</p>
+        <div class="guard">Guarantee — reconstructible years later from a few bytes, without storing a personalized copy.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">commit(submission)</div>
+        <p>Publishes a private, non-repudiable commitment to a submission. Reveals neither identity
+          nor content; a nullifier prevents a second silent submission.</p>
+        <div class="guard">Guarantee — a submission cannot be altered after the fact, or denied to have happened.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">attest(inference)</div>
+        <p>Runs a model against protected content inside a hardware enclave and returns the result
+          plus proof of where it executed.</p>
+        <div class="guard">Guarantee — content is never readable by the model host, the vendor, or us.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">anchor(hash)</div>
+        <p>Writes an immutable record of what existed and when, to infrastructure outside the
+          institution's control and outside ours.</p>
+        <div class="guard">Guarantee — the record survives us, and cannot be rewritten by anyone who compromises us.</div>
+      </div>
+      <div class="sys-row">
+        <div class="sys-call">verify(claim)</div>
+        <p>Re-derives any assertion the system has made, from original sources, without consulting
+          the application database.</p>
+        <div class="guard">Guarantee — anyone can run it, including people we have no relationship with.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">Process isolation</p>
+    <h2>Four services that cannot become each other.</h2>
+    <p class="lead">The system is decomposed along privilege boundaries, not for scaling
+      convenience. The process serving your web session and the process holding decryption keys
+      are separated by design, and there is no configuration that merges them.</p>
 
     <div class="svc">
       <div class="svc-item">
         <div class="st">Service 01</div>
         <h3>Application API</h3>
         <div class="lang">Node · Express · PostgreSQL · Redis</div>
-        <p>Identity, scheduling, blueprints, exam sessions, job orchestration. This is the surface
-          the internet talks to, and it is deliberately the least privileged part of the system.</p>
+        <p>Identity, scheduling, blueprints, sessions, orchestration. The surface the internet talks
+          to, and deliberately the least privileged component in the system.</p>
         <ul class="can">
           <li><span class="y">can</span><span>Queue work, read metadata, write audit records</span></li>
           <li><span class="n">cannot</span><span>Decrypt a question or a paper</span></li>
-          <li><span class="n">cannot</span><span>Reach a paper key, even with database access</span></li>
+          <li><span class="n">cannot</span><span>Reach a paper key, even with full database access</span></li>
         </ul>
       </div>
       <div class="svc-item">
         <div class="st">Service 02</div>
         <h3>Crypto workers</h3>
         <div class="lang">Isolated queue consumers · BullMQ</div>
-        <p>Where encryption actually happens. Pulls jobs off Redis, performs envelope encryption,
-          writes to 0G Storage, signs chain transactions. Holds the question-bank master key.</p>
+        <p>Where encryption happens. Pulls jobs from Redis, performs envelope encryption, writes to
+          storage, signs chain transactions. Holds the question-bank master key.</p>
         <ul class="can">
           <li><span class="y">can</span><span>Encrypt, decrypt, assemble, anchor</span></li>
           <li><span class="n">cannot</span><span>Be reached directly over HTTP</span></li>
@@ -478,12 +564,11 @@ tr:last-child td{border-bottom:0}
         <div class="st">Service 03</div>
         <h3>Miden bridge</h3>
         <div class="lang">Rust · Axum · miden-client</div>
-        <p>A separate process, and its separateness is engineering necessity rather than taste.
-          Miden proves transactions client-side and has no first-party Node SDK — so the real Rust
-          client runs here, on a dedicated OS thread with its own single-threaded runtime, reached
-          only over an internal channel.</p>
+        <p>A separate process out of necessity rather than taste. Miden proves transactions
+          client-side and ships no Node SDK, so the real Rust client runs here on a dedicated thread
+          with its own runtime, reached only through an internal channel.</p>
         <ul class="can">
-          <li><span class="y">can</span><span>Seal keys into notes, submit and consume transactions</span></li>
+          <li><span class="y">can</span><span>Seal keys, submit and consume transactions</span></li>
           <li><span class="n">cannot</span><span>Release a sealed key before its block height</span></li>
         </ul>
       </div>
@@ -492,7 +577,7 @@ tr:last-child td{border-bottom:0}
         <h3>Chain registries</h3>
         <div class="lang">Solidity · 0G Chain</div>
         <p>Five append-only contracts — questions, papers, submissions, results, audit log. They
-          store hashes and block numbers. Nothing else.</p>
+          store hashes and block numbers, and nothing else.</p>
         <ul class="can">
           <li><span class="y">can</span><span>Prove what existed, and when</span></li>
           <li><span class="n">cannot</span><span>Hold content, identity, or scores</span></li>
@@ -500,28 +585,28 @@ tr:last-child td{border-bottom:0}
         </ul>
       </div>
     </div>
-    <p class="cap">The Miden bridge running on its own thread isn't an aesthetic choice. Miden's
-      client type isn't thread-safe across an async web server — its transaction prover loses its
-      <span class="mono">Send</span> bound at an API boundary — so sharing it across request threads
-      is impossible. Isolating it in an actor happens to mirror Miden's own model, where one
+    <p class="cap">The bridge running on its own thread is forced by the platform, not chosen:
+      Miden's client type isn't thread-safe across an async server — its transaction prover loses
+      its <span class="mono">Send</span> bound at an API boundary — so it cannot be shared across
+      request threads. Isolating it as an actor happens to mirror Miden's own model, where one
       account processes one state transition at a time.</p>
   </div>
 </section>
 
-<section class="sec alt">
+<section class="sec">
   <div class="wrap">
-    <p class="eyebrow">Cryptographic design</p>
+    <p class="eyebrow">Key management</p>
     <h2>Two keys, with deliberately different lifetimes.</h2>
-    <p class="lead">Most systems that claim encryption have one key that opens everything, held
-      somewhere convenient. The interesting design work here is in the second key — the one that
-      exists for a few seconds and then stops being ours.</p>
+    <p class="lead">Most systems claiming encryption have one key that opens everything, kept
+      somewhere convenient. The design work here is in the second key — the one that exists for a
+      few seconds and then stops being ours.</p>
 
     <div class="keys">
       <div class="keyc">
         <div class="kt">Key one · long-lived</div>
         <h3>Question-bank master key</h3>
         <p>Protects individual questions at rest. Every accepted question is sealed under it with
-          AES-256-GCM, written to 0G Storage, and anchored by content hash.</p>
+          AES-256-GCM, written to storage, and anchored by content hash.</p>
         <dl>
           <dt>Held by</dt><dd>Crypto workers only</dd>
           <dt>Lifetime</dt><dd>Rotating, long-lived</dd>
@@ -531,74 +616,62 @@ tr:last-child td{border-bottom:0}
       <div class="keyc eph">
         <div class="kt">Key two · ephemeral</div>
         <h3>Paper content key</h3>
-        <p>Generated at assembly, used once, then handed to the Miden bridge to be sealed. The
-          worker drops its own copy immediately afterwards.</p>
+        <p>Generated at assembly, used once, handed to the kernel to be sealed. The worker discards
+          its own copy immediately afterwards.</p>
         <dl>
-          <dt>Held by</dt><dd>A Miden note, after assembly</dd>
+          <dt>Held by</dt><dd>A sealed note, after assembly</dd>
           <dt>Lifetime</dt><dd>Seconds, on our side</dd>
           <dt>Protects</dt><dd>Exactly one exam paper</dd>
         </dl>
       </div>
     </div>
 
-    <p style="margin-top:1.75rem">Assembly runs in a specific order, and the order is the whole
-      point. Workers decrypt the selected questions individually, compose the paper in memory,
-      generate a fresh content key, encrypt the composed paper under it, upload the ciphertext, and
-      anchor its hash. Only then does the key go to the bridge to be sealed — and the moment it
-      does, the worker discards it.</p>
+    <p style="margin-top:1.75rem">Assembly runs in a fixed order, and the order is the point.
+      Workers decrypt selected questions individually, compose the paper in memory, generate a
+      fresh content key, encrypt under it, upload the ciphertext, anchor its hash — and only then
+      seal the key and drop it.</p>
 
     <div class="pull">Between assembly and exam start, the paper key exists in exactly one place:
-      inside a Miden note the network refuses to open. Not in our database. Not in a vault we
-      control. Not in a config file. If our entire infrastructure were seized during that window,
-      the paper would still be unreadable.</div>
-
-    <p>This is also why a compromised database doesn't leak an exam. The rows contain a storage
-      root, a content hash, a note identifier, and a block height. Every one of those is safe to
-      publish — we anchor them publicly on purpose.</p>
+      inside a sealed note the network refuses to open. Not in a database. Not in a vault we
+      control. If our entire infrastructure were seized during that window, the paper would still
+      be unreadable.</div>
   </div>
 </section>
 
 <section class="sec">
   <div class="wrap">
-    <p class="eyebrow">The timelock</p>
-    <h2>How the paper actually stays shut.</h2>
-    <p class="lead">A scheduled release in a normal system is a timestamp column and a background
-      job. Anyone with write access can move the date, and nobody outside would know. We needed
-      the release condition to live somewhere no operator could reach.</p>
+    <p class="eyebrow">The scheduler</p>
+    <h2>Release as a protocol event, not an application decision.</h2>
+    <p class="lead">A scheduled release in ordinary software is a timestamp column and a background
+      job — anyone with write access can move the date and nobody outside would know. The release
+      condition needed to live somewhere no operator could reach.</p>
 
     <p>The paper's content key is wrapped into a Miden <span class="mono">P2IDE</span> note carrying
       two block heights: <span class="mono">timelock_height</span>, before which the note cannot be
-      consumed at all, and <span class="mono">reclaim_height</span>, after which the original sender
-      can take it back once the exam window has closed. Both are enforced by the note's script
-      executing inside Miden's VM as part of transaction validity — not by a permission check in our
-      code that a privileged user could route around.</p>
+      consumed at all, and <span class="mono">reclaim_height</span>, after which the sender can take
+      it back once the window has closed. Both are enforced by the note's script executing inside
+      the VM as a condition of transaction validity — not by a permission check in our code that a
+      privileged user could route around.</p>
 
-    <p>Because the condition is a block height rather than a wall-clock time, it also can't be
-      defeated by changing a server's clock. We derive the target height from the exam schedule at
-      sealing time and record the derivation, so the mapping from "9:00am Tuesday" to a specific
-      block is itself auditable.</p>
-
-    <p>One detail worth stating plainly, because it's the kind of thing that sounds like a gap:
-      a P2IDE note must carry at least one asset. We issue our own private fungible token for this —
-      it is not a currency, it has no market, and it never leaves our accounts. Its only job is to
-      be the thing whose transfer the timelock governs. The exam key is <em>not</em> stored in that
-      asset, and could not be: Miden stores only a hash of asset data on chain, never the bytes. The
-      wrapped key stays bridge-side and is released only after a real consume transaction against
-      the network succeeds.</p>
+    <p>One detail worth stating plainly, since it's the kind of thing a technical reader will
+      probe: a P2IDE note must carry at least one asset. We issue a private token for this. It is
+      not a currency, has no market, and never leaves our accounts — its only job is to be the
+      thing whose transfer the timelock governs. The exam key is <em>not</em> inside that asset and
+      could not be, since only a hash of asset data reaches the chain.</p>
 
     <div class="gate" id="gate">
       <div class="halves">
         <div class="half">
           <div class="who">Half one</div>
           <h3>The encrypted paper</h3>
-          <p>Sits in 0G Storage. Anyone can download it. Without the key it's a wall of
+          <p>Sits in decentralized storage. Anyone can download it. Without the key it's a wall of
             ciphertext — AES-256-GCM, no shortcuts.</p>
         </div>
         <div class="half">
           <div class="who">Half two</div>
           <h3>The key, timelocked</h3>
-          <p>Wrapped inside a Miden note whose script refuses to release it before the exam-start
-            block. Not a permission check. A protocol rule.</p>
+          <p>Sealed in a note whose script refuses to release it before the exam-start block. Not a
+            permission check. A protocol rule.</p>
         </div>
       </div>
       <div class="lockrow">
@@ -616,39 +689,254 @@ tr:last-child td{border-bottom:0}
     </div>
 
     <p style="margin-top:1.75rem" class="lead">We tested this the only way that counts — by trying
-      to open it from every role the system has, on a live deployment.</p>
+      to open it from every role the system defines, on a live deployment.</p>
     <ul class="deny-list">
       <li><span class="role">Admin</span><span class="x">denied</span><span>Highest-privilege account. There is no override key to hand them.</span></li>
       <li><span class="role">Exam centre</span><span class="x">denied</span><span>Authorization endpoint returns unauthorized, with the reason.</span></li>
       <li><span class="role">Candidate</span><span class="x">denied</span><span>Exam start refused; paper status is not READY.</span></li>
       <li><span class="role">Us</span><span class="x">denied</span><span>Same code path. We built it and we can't open it either.</span></li>
     </ul>
-    <div class="pull">There is no backend override. Not because we chose not to build one —
-      because the architecture has nowhere to put it.</div>
   </div>
 </section>
 
 <section class="sec alt">
   <div class="wrap">
-    <p class="eyebrow">Delivery</p>
-    <h2>Every candidate gets a different paper made of identical questions.</h2>
-    <p class="lead">Each exam session is issued a randomization seed at enrolment. Question order
-      and the order of options within each question are derived from it deterministically. Same
-      question set, same difficulty profile, same marks — different arrangement.</p>
+    <p class="eyebrow">Walkthrough</p>
+    <h2>One exam, start to finish.</h2>
+    <p class="lead">A recruitment assessment for 40,000 candidates across 60 centres, on a Tuesday
+      at 09:00. This is what actually happens, and — in the right-hand column — who is capable of
+      reading the paper at each moment.</p>
 
-    <p>The property this buys isn't obfuscation. It's that positional information becomes worthless.
-      "Question 4 is C" is true for exactly one candidate and misleading for everyone else. Copying
-      from a neighbouring screen stops being a glance and starts requiring you to read and solve the
-      entire question, which is the activity we were trying to measure anyway.</p>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">T − 21 days</span><h3>Authoring</h3></div>
+        <p>Subject experts submit 800 questions. Each is reviewed inside an enclave for duplication
+          against the existing bank, difficulty, bias, and cognitive level. 612 pass. Each accepted
+          question is encrypted individually and anchored on its own.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>612 question anchors, content + validation hash</b></span>
+          <span class="tl-read">can read the paper · <b>nobody — the paper does not exist yet</b></span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">T − 7 days</span><h3>Blueprint</h3></div>
+        <p>The employer specifies shape, not content: 40% quantitative, 35% logical, 25% verbal,
+          120 questions, negative marking at one quarter. They never see a question. They never
+          choose one.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>blueprint hash</b></span>
+          <span class="tl-read">can read the paper · <b>nobody — still unassembled</b></span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">T − 7 days</span><h3>Assembly and seal</h3></div>
+        <p>Workers select deterministically against the blueprint, decrypt those questions, compose
+          the paper in memory, encrypt it under a brand-new key, and upload. The key is sealed to
+          the block height corresponding to Tuesday 09:00, and the worker's copy is destroyed.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>paper hash, storage root, note ID, target height</b></span>
+          <span class="tl-read">can read the paper · <b>nobody — this is the critical window</b></span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">T − 1 day</span><h3>Centre sync</h3></div>
+        <p>All 60 centres download the encrypted payload in advance and verify its hash against the
+          chain anchor. Machines report readiness. Nothing they hold is readable — they're staging
+          ciphertext, which is why it's safe to distribute it early.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>60 centre readiness attestations</b></span>
+          <span class="tl-read">can read the paper · <b>nobody — including every centre holding it</b></span>
+        </div>
+      </div>
+      <div class="tl-item key">
+        <div class="tl-t"><span class="tl-when">T − 0 · 09:00</span><h3>Release</h3></div>
+        <p>The target block arrives. The note becomes consumable, the key is released, and papers
+          decrypt locally at each centre. No human authorized this. No server issued a command. A
+          block height was reached.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>note consumption, release transaction</b></span>
+          <span class="tl-read">can read the paper · <b>candidates, at their desks, now</b></span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">09:00 – 12:00</span><h3>The exam</h3></div>
+        <p>40,000 candidates each receive the same 120 questions in an order derived from their own
+          seed. Answers autosave encrypted. Invigilation daemons watch every session and escalate
+          anomalies with evidence rather than verdicts.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>40,000 private submission commitments</b></span>
+          <span class="tl-read">can read the paper · <b>candidates and centre staff, during the window</b></span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-t"><span class="tl-when">T + 2 days</span><h3>Results and verification</h3></div>
+        <p>Evaluation runs, ranks are computed, result hashes are anchored. Every candidate can now
+          enter an application number and date of birth on a public page and independently re-derive
+          six separate claims — without an account, and without our cooperation.</p>
+        <div class="tl-meta">
+          <span>on chain · <b>result hashes, rank list hash</b></span>
+          <span class="tl-read">can read the paper · <b>public — it's over, and now it's evidence</b></span>
+        </div>
+      </div>
+    </div>
 
-    <p>Because the seed is stored and the derivation is deterministic, we can reconstruct precisely
-      what any individual candidate saw — months later, during a dispute — without ever storing a
-      separate personalized copy of their paper. The seed is a few bytes; the paper regenerates
-      from it.</p>
+    <div class="pull">Read the right-hand column top to bottom. For twenty-one days, across four
+      organizations and sixty locations, the answer to "who could leak this" is nobody — and that
+      isn't a policy claim, it's a description of what the software can do.</div>
+  </div>
+</section>
 
-    <p>Answers autosave continuously, encrypted client-side. On submission, a private Miden note
-      commits the submission. Its nullifier makes a second silent submission impossible, while the
-      note itself reveals neither the candidate's identity nor their answers on chain.</p>
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Comparison</p>
+    <h2>Traditional online examination vs teaOS.</h2>
+    <p class="lead">Not a feature grid. These are the seven questions an examination controller
+      actually gets asked after something goes wrong, and what each architecture can answer.</p>
+
+    <div class="vs">
+      <div class="vs-row">
+        <div class="vs-k">Who can read the paper before the exam starts?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>Database administrators, vendor
+          staff, the ops engineer with production access, anyone who can read a backup.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>Nobody. The key is sealed to a block height
+          and does not exist in usable form until it arrives.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">What enforces the release time?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>A timestamp column and a scheduled
+          job. Editable by anyone with write access, silently.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>A note script executing in a VM as a
+          condition of transaction validity. Not editable by anyone, including us.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">Who owns the audit log?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>The institution under investigation.
+          Which is the entire problem with it as evidence.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>A public chain. Neither the institution nor
+          the vendor can alter it after the fact.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">Where does AI review of questions happen?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>A third-party inference API, meaning
+          unreleased questions leave the building and you hope for the best.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>Inside an attested hardware enclave. The
+          host cannot read what it processes, and can prove where it ran.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">Can a candidate check their own result?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>They can view it. Verification means
+          asking the institution whether the institution is correct.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>Six independent checks re-derived from
+          source, on a public page, with no login and no cooperation from us.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">What does every candidate see?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>Usually the same paper in the same
+          order, which makes positional answer-sharing trivially effective.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>Identical questions in a per-candidate
+          order derived from their seed, reproducible later for disputes.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">What happens when a leak is alleged?</div>
+        <div class="vs-a"><span class="vs-l">Traditional</span>An investigation, a committee, and
+          often mass cancellation — because nobody can prove the negative.</div>
+        <div class="vs-b"><span class="vs-l">teaOS</span>The timeline is public and immutable. The
+          question isn't investigated, it's checked.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <p class="eyebrow">System daemons</p>
+    <h2>AI agents that monitor the exam — and are monitored themselves.</h2>
+    <p class="lead">A 40,000-candidate exam produces more behavioural signal in three hours than a
+      human team could review in a month. Automating that is obvious. What isn't obvious — and what
+      every proctoring vendor quietly skips — is answering who audits the automation.</p>
+    <p>Most AI proctoring is a black box that flags a candidate, produces a confidence score, and
+      ends a career. The candidate cannot see the evidence, cannot contest the model, and cannot
+      establish that the same behaviour wouldn't have been flagged in someone else. That's not
+      monitoring, it's an unappealable verdict from software.</p>
+    <p>teaOS treats agents as system daemons subject to the same kernel guarantees as everything
+      else. They run inside enclaves, so they never see raw candidate data in the clear. Every
+      judgement they make is anchored with the evidence that produced it. And critically, no agent
+      holds authority — they escalate to humans with a signed evidence bundle, and the consequence
+      is always a human decision that is itself recorded.</p>
+
+    <div class="dmn">
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 01</span><h3>Invigilation</h3></div>
+        <p>Establishes a behavioural baseline for each candidate from their opening minutes, then
+          scores deviation from it — rather than from a population average that penalizes anyone
+          who is simply unusual.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Focus loss, response latency distribution, input cadence,
+            navigation patterns, clipboard events</dd></div>
+          <div><dt>Emits</dt><dd>A signed evidence bundle with timestamps and specific triggers</dd></div>
+          <div><dt>Never</dt><dd>Disqualifies, scores, or acts without human review</dd></div>
+        </dl>
+      </div>
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 02</span><h3>Collusion analysis</h3></div>
+        <p>Correlates answer patterns across candidates and centres. The strongest signal isn't
+          matching correct answers — it's matching <em>wrong</em> ones, which is far harder to
+          explain by shared competence.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Wrong-answer agreement, lockstep timing, centre-level score
+            distributions against population</dd></div>
+          <div><dt>Emits</dt><dd>Cohort-level anomaly reports with statistical significance</dd></div>
+          <div><dt>Never</dt><dd>Exposes individual data; operates on aggregates inside the enclave</dd></div>
+        </dl>
+      </div>
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 03</span><h3>Bank health</h3></div>
+        <p>Watches the question bank as a living asset. A question that suddenly gets easier across
+          a cohort has usually leaked, and detecting that drift is an early warning nobody currently
+          has.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Exposure counts, difficulty drift, discrimination index, topic
+            coverage gaps</dd></div>
+          <div><dt>Emits</dt><dd>Retirement and refresh proposals, leak-suspicion alerts</dd></div>
+          <div><dt>Never</dt><dd>Removes or edits a question autonomously</dd></div>
+        </dl>
+      </div>
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 04</span><h3>Blueprint co-pilot</h3></div>
+        <p>Proposes paper shapes calibrated against historical performance, and predicts the score
+          distribution before the exam runs — so institutions design tests that actually
+          discriminate, instead of ones that merely satisfy a policy document.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Historical cohort performance, difficulty balance, coverage</dd></div>
+          <div><dt>Emits</dt><dd>Draft blueprints with predicted outcome distributions</dd></div>
+          <div><dt>Never</dt><dd>Publishes a blueprint; the institution always approves</dd></div>
+        </dl>
+      </div>
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 05</span><h3>Integrity auditor</h3></div>
+        <p>Audits teaOS itself, continuously. Re-fetches stored blobs and re-checks them against
+          their chain anchors, so silent divergence between what we stored and what we claimed is
+          caught by the system rather than by a journalist.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Storage roots vs anchors, note states, transaction finality</dd></div>
+          <div><dt>Emits</dt><dd>Divergence alerts, periodic public integrity reports</dd></div>
+          <div><dt>Never</dt><dd>Trusts the application database as a source of truth</dd></div>
+        </dl>
+      </div>
+      <div class="dmn-item">
+        <div class="dh"><span class="dn">daemon 06</span><h3>Identity continuity</h3></div>
+        <p>Confirms the person who started the exam is the person still sitting it, without storing
+          biometric templates in a form that would be worth stealing.</p>
+        <dl class="sig">
+          <div><dt>Watches</dt><dd>Session-level identity continuity signals across the window</dd></div>
+          <div><dt>Emits</dt><dd>Continuity breaks for human verification</dd></div>
+          <div><dt>Never</dt><dd>Retains raw biometrics outside the enclave</dd></div>
+        </dl>
+      </div>
+    </div>
+    <p class="cap">The design rule across all six: an agent may observe and escalate, but authority
+      stays with a human whose decision is itself anchored. An accusation you cannot inspect isn't
+      evidence — and a system that produces those at scale is worse than no monitoring at all.</p>
   </div>
 </section>
 
@@ -656,10 +944,9 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Verification</p>
     <h2>Six independent checks, no login required.</h2>
-    <p class="lead">A candidate enters an application number and date of birth on a public page.
-      The system doesn't look up a stored "verified" flag — it re-derives every claim from source
-      and reports each one separately, so a partial failure is visible rather than hidden behind a
-      single green tick.</p>
+    <p class="lead">A candidate enters an application number and date of birth. The system doesn't
+      read a stored "verified" flag — it re-derives every claim from source and reports each
+      separately, so a partial failure is visible instead of hidden behind one green tick.</p>
 
     <ul class="checks">
       <li><span class="tick">01</span><span><span class="ct">Answer hash matches</span>
@@ -668,35 +955,35 @@ tr:last-child td{border-bottom:0}
         <span class="cd">The submission commitment matches what was anchored, byte for byte.</span></span></li>
       <li><span class="tick">03</span><span><span class="ct">Official result hash matches</span>
         <span class="cd">The published score re-derives to the hash anchored in ResultRegistry.</span></span></li>
-      <li><span class="tick">04</span><span><span class="ct">Miden note status is consistent</span>
+      <li><span class="tick">04</span><span><span class="ct">Note status is consistent</span>
         <span class="cd">The submission note exists, and its nullifier shows exactly one consumption.</span></span></li>
-      <li><span class="tick">05</span><span><span class="ct">0G Storage Merkle proof verifies</span>
+      <li><span class="tick">05</span><span><span class="ct">Storage Merkle proof verifies</span>
         <span class="cd">The stored blob proves membership under the root that was anchored.</span></span></li>
       <li><span class="tick">06</span><span><span class="ct">Chain transaction is valid and final</span>
-        <span class="cd">The anchoring transaction exists on 0G Chain at the stated block.</span></span></li>
+        <span class="cd">The anchoring transaction exists on chain at the stated block.</span></span></li>
     </ul>
 
-    <p style="margin-top:1.75rem">None of these checks trusts our database. Each one goes to the
-      original source — the chain, the storage layer, the Miden network — and recomputes. A
-      journalist, a court, or a competing vendor can run the same checks against public
-      infrastructure and get the same answer without our cooperation.</p>
+    <p style="margin-top:1.75rem">None of these consult our database. Each goes to the original
+      source and recomputes. A journalist, a court, or a competing vendor can run the same checks
+      against public infrastructure and get the same answer without our cooperation — which is the
+      only definition of verification that means anything.</p>
   </div>
 </section>
 
 <section class="sec alt">
   <div class="wrap">
-    <p class="eyebrow">Component choices</p>
-    <h2>What the architecture required, and what met it.</h2>
-    <p class="lead">We didn't start from a shortlist of chains. Each requirement below came out of
-      the design, and only then did we go looking for something that satisfied it.</p>
+    <p class="eyebrow">Hardware abstraction</p>
+    <h2>What the kernel required, and what met it.</h2>
+    <p class="lead">We didn't start from a shortlist of chains. Each requirement came out of the
+      kernel design, and only then did we go looking for something that satisfied it.</p>
 
     <div class="req">
       <div class="req-row">
         <div>
           <div class="need">A release condition no operator can override</div>
-          <p class="why">Everything else in the system is downstream of this. If any human can move
-            the release time, the entire integrity claim collapses. It had to be enforced during
-            transaction validation, not by application logic.</p>
+          <p class="why">Everything else is downstream of this. If any human can move the release
+            time, the whole guarantee collapses. It had to be enforced during transaction
+            validation, not by application logic.</p>
         </div>
         <div class="pick">Miden P2IDE notes<br />timelock enforced in-VM</div>
       </div>
@@ -704,8 +991,8 @@ tr:last-child td{border-bottom:0}
         <div>
           <div class="need">AI review that never exposes the question</div>
           <p class="why">Duplicate detection and difficulty prediction need a capable model. Sending
-            an unreleased question to an ordinary inference API means handing the paper to a vendor
-            and hoping. We needed attestable execution.</p>
+            an unreleased question to an ordinary API means handing over the paper and hoping. We
+            needed attestable execution.</p>
         </div>
         <div class="pick">0G Compute<br />Intel TDX enclaves</div>
       </div>
@@ -721,62 +1008,61 @@ tr:last-child td{border-bottom:0}
       <div class="req-row">
         <div>
           <div class="need">An audit record outside our own control</div>
-          <p class="why">Logs owned by the accused prove nothing. And batching once a day makes the
-            trail too coarse to answer "when exactly did this question enter the bank" — so
-            anchoring had to be cheap enough to do per item.</p>
+          <p class="why">Logs owned by the accused prove nothing. And daily batching is too coarse
+            to answer "when exactly did this enter the bank" — so anchoring had to be cheap enough
+            to do per item.</p>
         </div>
         <div class="pick">0G Chain<br />EVM L1, per-item anchoring</div>
       </div>
     </div>
 
-    <p class="cap">Blockchain is doing one specific job here and we'd rather name it precisely than
-      overclaim: it makes a record that exists outside the institution's reach and cannot be edited
-      afterwards — by them, by us, or by anyone who compromises either of us. Nothing about the
-      exam's fairness depends on decentralization as an ideology.</p>
+    <p class="cap">Blockchain does one specific job here and we'd rather name it precisely than
+      overclaim: it produces a record that exists outside the institution's reach and cannot be
+      edited afterwards — by them, by us, or by anyone who compromises either of us. Nothing about
+      the exam's fairness depends on decentralization as an ideology.</p>
   </div>
 </section>
 
 <section class="sec">
   <div class="wrap">
-    <p class="eyebrow">Engineering discipline</p>
+    <p class="eyebrow">Kernel guarantees</p>
     <h2>The failures we designed against.</h2>
-    <p class="lead">Security systems don't usually fail loudly. They fail by reporting success
-      while doing nothing. Three of these were found by running the system, not by reasoning about
-      it — which is the only reason we trust the rest of it.</p>
+    <p class="lead">Security systems rarely fail loudly. They fail by reporting success while doing
+      nothing. Three of these were found by running the system rather than reasoning about it,
+      which is the main reason we trust the rest of it.</p>
 
     <div class="fail">
       <div class="fail-row">
         <div class="mode">Failure mode</div>
         <h3>Silent success</h3>
         <p>An unimplemented endpoint returned an error message with a success status code. The
-          caller's check passed, the error body was parsed as a valid result, and a paper was
-          marked ready with no timelock attached to it at all.</p>
-        <div class="fix"><b>Now</b>Every response from the bridge is validated against a strict
-          schema regardless of status code. A well-formed lie fails as loudly as a crash.</div>
+          caller's check passed, the error body parsed as a valid result, and a paper was marked
+          ready with no timelock attached to it at all.</p>
+        <div class="fix"><b>Now</b>Every kernel response is validated against a strict schema
+          regardless of status code. A well-formed lie fails as loudly as a crash.</div>
       </div>
       <div class="fail-row">
         <div class="mode">Failure mode</div>
         <h3>The privileged exception</h3>
-        <p>The usual way this system would rot is an emergency override added under pressure —
+        <p>The usual way a system like this rots is an emergency override added under pressure —
           "just for the admin, just this once" — which then becomes the thing an attacker targets.</p>
-        <div class="fix"><b>Now</b>One code path gates exam start for every role. There is no
-          branch on privilege level, so there is nowhere to add an exception without deleting the
-          check for everyone.</div>
+        <div class="fix"><b>Now</b>One code path gates exam start for every role. There is no branch
+          on privilege, so there is nowhere to add an exception without removing the check entirely.</div>
       </div>
       <div class="fail-row">
         <div class="mode">Failure mode</div>
         <h3>Orphaned key material</h3>
         <p>The bridge originally provisioned a fresh account on every restart, which would have
-          stranded sealed notes behind an identity the service no longer had.</p>
-        <div class="fix"><b>Now</b>Accounts persist across restarts and are verified present in the
-          local store before reuse, with a fresh pair provisioned only if that check fails.</div>
+          stranded sealed notes behind an identity the service no longer possessed.</p>
+        <div class="fix"><b>Now</b>Accounts persist across restarts and are verified present before
+          reuse, with a fresh pair provisioned only if that check fails.</div>
       </div>
       <div class="fail-row">
         <div class="mode">Failure mode</div>
         <h3>Retries corrupting state</h3>
-        <p>A queued job that failed partway through an external call would re-enter and hit a
-          state guard written for the first attempt, reporting a confusing conflict instead of
-          genuinely retrying.</p>
+        <p>A queued job failing partway through an external call would re-enter and hit a state
+          guard written for the first attempt, reporting a confusing conflict instead of genuinely
+          retrying.</p>
         <div class="fix"><b>Now</b>State machines accept their own in-progress states as valid
           re-entry points, so a retry is a retry rather than a spurious error.</div>
       </div>
@@ -790,16 +1076,16 @@ tr:last-child td{border-bottom:0}
     <h2>Every actor, every hop.</h2>
     <p class="lead">The complete end-to-end flow across all five roles — author, institution, exam
       centre, candidate, and the public verification layer.</p>
-    <div class="schema"><img src="{{FLOW}}" alt="teaOS end-to-end architecture: author question submission through AI validation and encryption, institutional blueprint and paper assembly with Miden timelock, exam centre authorization, candidate exam client and private submission, evaluation, ranking and public verification portal" /></div>
-    <p class="cap">Teal = 0G Storage / 0G Chain · Purple = 0G Compute TEE inference ·
-      Coral = Miden zero-knowledge layer · Gray = deterministic application logic</p>
+    <div class="schema"><img src="{{FLOW}}" alt="teaOS end-to-end architecture: author question submission through AI validation and encryption, institutional blueprint and paper assembly with timelock, exam centre authorization, candidate exam client and private submission, evaluation, ranking and public verification portal" /></div>
+    <p class="cap">Teal = storage and chain anchoring · Purple = enclave inference ·
+      Coral = zero-knowledge layer · Gray = deterministic application logic</p>
   </div>
 </section>
 
 <section class="sec">
   <div class="wrap">
-    <p class="eyebrow">Who buys this</p>
-    <h2>Anyone whose exam result has to hold up under challenge.</h2>
+    <p class="eyebrow">Workloads</p>
+    <h2>Who runs on it.</h2>
     <p class="lead">Four segments, one shared problem: they all make consequential decisions from
       test scores, and none of them can currently prove the test wasn't compromised.</p>
 
@@ -812,8 +1098,8 @@ tr:last-child td{border-bottom:0}
         <span class="vol">10K – 500K candidates / year</span>
         <p>Campus recruitment, lateral hiring assessments, internal promotion tests, global
           certification programs run across dozens of countries.</p>
-        <p class="pain">A leaked question bank quietly destroys the validity of every hire made
-          from it — and there's no defensible record when a rejected candidate disputes the result.</p>
+        <p class="pain">A leaked question bank quietly destroys the validity of every hire made from
+          it — and there's no defensible record when a rejected candidate disputes the outcome.</p>
       </div>
       <div class="seg">
         <div class="sh">
@@ -835,7 +1121,7 @@ tr:last-child td{border-bottom:0}
         <p>National and regional competitive examinations, civil service recruitment, public sector
           selection at population scale.</p>
         <p class="pain">A single leak means mass cancellation, litigation, and political
-          consequence. This is where the cost of failure is highest and the scrutiny is total.</p>
+          consequence. This is where the cost of failure is highest and scrutiny is total.</p>
       </div>
       <div class="seg">
         <div class="sh">
@@ -867,10 +1153,10 @@ tr:last-child td{border-bottom:0}
         <thead><tr><th>Stage</th><th>What ran</th><th>Network</th><th>Status</th></tr></thead>
         <tbody>
           <tr><td>Registry deployment</td><td>5 anchor contracts deployed</td><td>0G mainnet · chain 16661</td><td><span class="ok">live</span></td></tr>
-          <tr><td>Question pipeline</td><td>TEE validation → encrypt → store → anchor</td><td>0G Compute + Storage + Chain</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Question pipeline</td><td>Enclave validation → encrypt → store → anchor</td><td>0G Compute + Storage + Chain</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Paper assembly</td><td>Select → assemble → re-encrypt → anchor</td><td>0G mainnet</td><td><span class="ok">verified</span></td></tr>
-          <tr><td>Security gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
-          <tr><td>Miden timelock</td><td>Self-issued faucet, mint, P2IDE note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
+          <tr><td>Kernel gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Timelock</td><td>Self-issued faucet, mint, P2IDE note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
           <tr><td>Miden testnet</td><td>Same code, blocked on node version rollout</td><td>Miden testnet</td><td><span class="pend">waiting</span></td></tr>
         </tbody>
       </table>
@@ -878,9 +1164,9 @@ tr:last-child td{border-bottom:0}
 
     <p style="margin-top:1.5rem"><b>On that last row, plainly:</b> the Miden integration is complete
       and proven — it executed a real transaction on Miden's devnet. Their public testnet currently
-      rejects the newest published client SDK, which is the only version exposing the faucet APIs
-      the design needs. That's an upstream rollout gap on Miden's side, not a gap in our code, and
-      it clears the moment their nodes catch up.</p>
+      rejects the newest published client SDK, which is the only version exposing the APIs the
+      design needs. That's an upstream rollout gap on Miden's side, not a gap in our code, and it
+      clears the moment their nodes catch up.</p>
 
     <p class="eyebrow" style="margin-top:2.5rem">On-chain anchors — 0G mainnet</p>
     <div class="tbl-wrap">
@@ -901,57 +1187,6 @@ tr:last-child td{border-bottom:0}
 </section>
 
 <section class="sec">
-  <div class="wrap">
-    <p class="eyebrow">What comes next</p>
-    <h2>Agents that watch the exam, and can be audited themselves.</h2>
-    <p class="lead">Exams generate far more signal than a human team can watch in real time. The
-      moment you automate that watching, you create a new trust problem — who audits the watcher —
-      and most proctoring vendors simply don't answer it.</p>
-    <p>Our answer is that agents get the same treatment as everyone else in this system. They run
-      inside 0G Compute enclaves, so they never see raw candidate data in the clear. Every
-      judgement they make — every flag, every escalation — is anchored on chain alongside the
-      evidence that triggered it. An agent's decisions become exactly as reviewable as a human
-      invigilator's, except they don't get tired at hour four, and unlike a human they can be
-      re-examined years later.</p>
-
-    <div class="grid">
-      <div class="card">
-        <div class="k">Agent 01</div>
-        <h3>Live invigilation</h3>
-        <p>Watches session telemetry across every centre simultaneously — focus loss, timing
-          irregularities, input patterns — and produces a signed evidence bundle instead of an
-          unexplained accusation.</p>
-        <div class="meta">Runs in TEE · decisions anchored · human review required before action</div>
-      </div>
-      <div class="card">
-        <div class="k">Agent 02</div>
-        <h3>Collusion detection</h3>
-        <p>Statistical analysis across centres and cohorts to surface coordinated answer patterns
-          that are invisible when each session is examined alone.</p>
-        <div class="meta">Cross-centre correlation · privacy-preserving aggregates</div>
-      </div>
-      <div class="card">
-        <div class="k">Agent 03</div>
-        <h3>Question bank health</h3>
-        <p>Continuously audits the bank for over-exposure, difficulty drift, and staleness, then
-          proposes retirement or refresh before a question stops discriminating between candidates.</p>
-        <div class="meta">Psychometric drift monitoring · retirement recommendations</div>
-      </div>
-      <div class="card">
-        <div class="k">Agent 04</div>
-        <h3>Blueprint co-pilot</h3>
-        <p>Proposes paper blueprints from historical performance data — balancing difficulty,
-          coverage, and discrimination — so institutions design better tests, not just compliant ones.</p>
-        <div class="meta">Historical calibration · institution approves, agent never publishes</div>
-      </div>
-    </div>
-    <p class="cap">Also on the roadmap: adaptive testing that adjusts difficulty per candidate
-      without compromising comparability of scores, and cross-border credential portability so a
-      verified result travels with the candidate instead of living in one institution's database.</p>
-  </div>
-</section>
-
-<section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">Business model</p>
     <h2>We charge institutions. Candidates never pay.</h2>
@@ -1000,10 +1235,10 @@ tr:last-child td{border-bottom:0}
   </div>
 </section>
 
-<section class="sec">
+<section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">The next four quarters</p>
-    <h2>From working prototype to signed contracts.</h2>
+    <h2>From working kernel to signed contracts.</h2>
     <div class="q" id="quarters">
       <div class="q-item">
         <div class="qh"><span class="qn">Q1</span><span class="qd">Jul–Sep 2026</span></div>
@@ -1026,8 +1261,8 @@ tr:last-child td{border-bottom:0}
         <ul>
           <li>First paid contract closed</li>
           <li>SOC 2 readiness + data residency</li>
+          <li>Invigilation daemon in beta</li>
           <li>Exam centre client hardened</li>
-          <li>Proctoring module in beta</li>
         </ul>
         <div class="q-metric">
           <div><span class="mk">Candidates</span><span class="mv">50,000</span></div>
@@ -1040,7 +1275,7 @@ tr:last-child td{border-bottom:0}
         <h3>Repeatable sales motion</h3>
         <ul>
           <li>3 institutional contracts running</li>
-          <li>Biometric identity module live</li>
+          <li>Identity continuity daemon live</li>
           <li>First enterprise recruitment pilot</li>
           <li>Third-party security audit</li>
         </ul>
@@ -1055,7 +1290,7 @@ tr:last-child td{border-bottom:0}
         <h3>Enterprise scale</h3>
         <ul>
           <li>7 contracts, first national board</li>
-          <li>Monitoring agents in beta</li>
+          <li>Full daemon suite in production</li>
           <li>Multi-region deployment</li>
           <li>Series A conversations open</li>
         </ul>
@@ -1069,29 +1304,54 @@ tr:last-child td{border-bottom:0}
   </div>
 </section>
 
-<section class="sec alt">
+<section class="sec">
   <div class="wrap">
-    <p class="eyebrow">Why us</p>
-    <h2>The whole system exists before the pitch does.</h2>
-    <div class="founder">
-      <img src="{{FOUNDER}}" alt="Sidhanth K. Mahto" />
-      <div>
-        <div class="nm">Sidhanth K. Mahto</div>
-        <div class="rl">Founder · HorizonX Labs</div>
-        <p>Most companies in this category are selling a diagram. teaOS is a deployed system: five
-          contracts anchoring on 0G mainnet, question validation running against live enclave
-          inference, and a Miden bridge written directly against a pre-1.0 Rust SDK because no
-          higher-level tooling for it exists yet.</p>
-        <p>That last part is the part that matters. The cryptographic guarantee this product sells
-          rests on primitives that are new enough to have no reference implementation, no Stack
-          Overflow answer, and documentation that trails the code. Building on them means reading
-          the source of your dependencies and finding out what's true by running it. Every claim on
-          this page was arrived at that way.</p>
-        <p>The bet is that in a category where the product <em>is</em> the integrity guarantee, the
-          only credible founder is one who has already made the cryptography work end to end —
-          before asking anyone to believe it can be done.</p>
+    <p class="eyebrow">Founders</p>
+    <h2>Decentralized infrastructure, and the AI that runs on it.</h2>
+    <p class="lead">teaOS needs two things to be true at once: cryptographic infrastructure that
+      genuinely holds, and AI systems trustworthy enough to be given authority over someone's
+      career. We split along exactly that line.</p>
+
+    <div class="team">
+      <div class="person">
+        <img src="{{SIDHANTH}}" alt="Sidhanth K. Mahto" />
+        <div class="pb">
+          <div class="nm">Sidhanth K. Mahto</div>
+          <div class="rl">Co-founder · Infrastructure</div>
+          <div class="cred">
+            <span>6+ yrs blockchain</span><span>4 yrs DeAIOS</span><span>Shipped across major chains</span>
+          </div>
+          <p>Six years building on-chain systems and four working in decentralized AI
+            infrastructure, with production products shipped across several major chains. That
+            combination is unusual and it's the reason teaOS exists at this layer rather than as
+            another exam portal.</p>
+          <p>Built the teaOS kernel end to end — the encryption and key lifecycle, the timelock
+            orchestration, the Miden bridge written directly against a pre-1.0 Rust SDK because no
+            higher-level tooling for it exists yet.</p>
+        </div>
+      </div>
+      <div class="person">
+        <img src="{{RAY}}" alt="Ray Tsai" />
+        <div class="pb">
+          <div class="nm">Ray Tsai</div>
+          <div class="rl">Co-founder · AI systems</div>
+          <div class="cred">
+            <span>AI agents</span><span>LLM systems</span><span>Full AI/ML stack</span>
+          </div>
+          <p>Builds agent systems and LLM infrastructure across the full ML stack — training,
+            evaluation, deployment, and the agent orchestration layer that turns models into
+            software that does things reliably.</p>
+          <p>Owns the daemon layer: the invigilation and collusion models, the psychometric analysis
+            behind bank health, and the harder constraint underneath all of it — making agents that
+            produce inspectable evidence instead of unappealable verdicts.</p>
+        </div>
       </div>
     </div>
+
+    <p style="margin-top:1.5rem">The bet is that in a category where the product <em>is</em> the
+      integrity guarantee, credibility comes from having already made the cryptography work —
+      before asking anyone to believe it can be done. The system described on this page is
+      deployed, not planned.</p>
   </div>
 </section>
 
@@ -1099,13 +1359,14 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Where this goes</p>
     <h2>Integrity shouldn't require trust.</h2>
-    <p class="lead">Every year, hundreds of millions of people sit an exam that decides what the rest
-      of their life looks like — and are asked to believe, on faith, that nobody opened the paper
-      early. When that faith breaks, it doesn't just cost a result. It costs a year, a rank, a job,
-      sometimes a career.</p>
-    <p class="lead">teaOS makes that faith unnecessary. Not by promising harder, but by building a
-      system where the promise is enforced by mathematics that answers to no one — and where any
-      candidate, on any phone, can check it for themselves in ten seconds.</p>
+    <p class="lead">Every year, hundreds of millions of people sit an exam that decides what the
+      rest of their life looks like — and are asked to believe, on faith, that nobody opened the
+      paper early. When that faith breaks, it doesn't just cost a result. It costs a year, a rank,
+      a job, sometimes a career.</p>
+    <p class="lead">Examinations are one of the last consequential systems still running without a
+      foundation underneath them. teaOS is that foundation: a kernel where the guarantee is
+      enforced by mathematics that answers to no one, and where any candidate, on any phone, can
+      check it for themselves in ten seconds.</p>
     <div class="pull">We're not asking institutions to be more trustworthy. We're making
       trustworthiness something they no longer have to be taken at their word for.</div>
     <div class="cta">
