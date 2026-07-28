@@ -369,6 +369,8 @@ tr:last-child td{border-bottom:0}
   color:var(--acc-tx);margin:.3rem 0 .85rem}
 .person p{margin:0 0 .75rem;font-size:.9375rem;color:var(--tx-2)}
 .person p:last-child{margin-bottom:0}
+.say{margin:0 0 .95rem;padding:0 0 0 .95rem;border-left:2px solid var(--acc);
+  font-size:1.0625rem;line-height:1.55;letter-spacing:-.012em;color:var(--tx)}
 .cred{display:flex;flex-wrap:wrap;gap:.35rem;margin:0 0 .9rem}
 .cred span{font-family:var(--mono);font-size:.6875rem;padding:.3rem .5rem;border-radius:3px;
   border:1px solid var(--hair-2);color:var(--tx-2);background:var(--bg);letter-spacing:.02em}
@@ -1334,13 +1336,17 @@ tr:last-child td{border-bottom:0}
           <div class="cred">
             <span>6+ yrs blockchain</span><span>4 yrs DeAIOS</span><span>Shipped across major chains</span>
           </div>
-          <p>Six years building on-chain systems and four working in decentralized AI
-            infrastructure, with production products shipped across several major chains. That
-            combination is unusual and it's the reason teaOS exists at this layer rather than as
-            another exam portal.</p>
-          <p>Built the teaOS kernel end to end — the encryption and key lifecycle, the timelock
-            orchestration, the Miden bridge written directly against a pre-1.0 Rust SDK because no
-            higher-level tooling for it exists yet.</p>
+          <blockquote class="say">I've spent six years building on-chain systems, and most of that
+            time I've been telling people their idea doesn't need a blockchain. This one does, and
+            I can point at exactly which part. Not the exam. Not the results. One moment: when a
+            paper becomes readable. Everything on either side of that is ordinary engineering.</blockquote>
+          <p>Six years across major chains and four in decentralized AI infrastructure is mostly an
+            education in which guarantees are real and which are marketing. That's the judgement
+            teaOS needed — the discipline to use cryptography for exactly one thing that genuinely
+            requires it, and conventional engineering everywhere else.</p>
+          <p>It's also why the hard part was tractable. Sealing a key to a block height means
+            working against pre-1.0 tooling with no reference implementation, which is
+            uncomfortable unless you've spent years at that layer already.</p>
         </div>
       </div>
       <div class="person">
@@ -1351,20 +1357,25 @@ tr:last-child td{border-bottom:0}
           <div class="cred">
             <span>AI agents</span><span>LLM systems</span><span>Full AI/ML stack</span>
           </div>
-          <p>Builds agent systems and LLM infrastructure across the full ML stack — training,
-            evaluation, deployment, and the agent orchestration layer that turns models into
-            software that does things reliably.</p>
-          <p>Owns the daemon layer: the invigilation and collusion models, the psychometric analysis
-            behind bank health, and the harder constraint underneath all of it — making agents that
-            produce inspectable evidence instead of unappealable verdicts.</p>
+          <blockquote class="say">The easy version of this is a model that flags suspicious
+            candidates. Anyone can ship that in a week. The version that should exist is one whose
+            reasoning a nineteen-year-old can read, challenge, and win against when it's wrong. If
+            software gets to influence whether someone gets a job, it doesn't get to hide how it
+            decided.</blockquote>
+          <p>Building agent systems across the full ML stack teaches you that accuracy is the easy
+            metric. The hard one is whether a system's judgement survives being questioned — which
+            is the entire design constraint on teaOS's monitoring layer.</p>
+          <p>That's why every daemon emits evidence a human can inspect rather than a score, and
+            why none of them hold authority. It's a harder system to build, and the only kind that
+            belongs anywhere near someone's career.</p>
         </div>
       </div>
     </div>
 
-    <p style="margin-top:1.5rem">The bet is that in a category where the product <em>is</em> the
-      integrity guarantee, credibility comes from having already made the cryptography work —
-      before asking anyone to believe it can be done. The system described on this page is
-      deployed, not planned.</p>
+    <p style="margin-top:1.5rem">Between us, the two halves of the claim are covered: infrastructure
+      that provably holds, and AI restrained enough to be trusted near a consequential decision. The
+      system described on this page is deployed, not planned — which is the only version of this
+      pitch we were willing to make.</p>
   </div>
 </section>
 
