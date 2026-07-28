@@ -130,7 +130,7 @@ adminRoutes.get("/papers/:id", async (req, res, next) => {
 });
 
 // The "pipeline" view is the same data as /papers/:id for now — status plus
-// the fields populated so far (storageRoot, chainTxHash, midenNoteId). A
+// the fields populated so far (storageRoot, chainTxHash, timelockRef). A
 // richer stage-by-stage timeline (mirroring the WS `paper:{id}:status`
 // events into persisted rows) is a Phase 4 refinement, not a blocker.
 adminRoutes.get("/papers/:id/pipeline", async (req, res, next) => {

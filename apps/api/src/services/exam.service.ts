@@ -1,8 +1,8 @@
 // Student Exam Client backend. The paper-decryption step is genuinely gated
-// on the Miden timelock — there is no backend override key, by design (see
-// knowledge_base.md §3: "no administrator can download the paper"). Until
-// contracts/miden/bridge is wired (blocked, see docs/MIDEN_INTEGRATION.md
-// "Windows build blocker"), Paper.status can never reach READY, so
+// on the tlock timelock (lib/timelock.ts) — there is no backend override
+// key, by design (see knowledge_base.md §3: "no administrator can download
+// the paper"). Until a Paper's content key is actually unsealable (its
+// drand round has been emitted), Paper.status can never reach READY, so
 // startExam() below will correctly and honestly refuse to start any exam —
 // that's the architecture working as intended, not a bug to route around.
 import { prisma } from "../lib/prisma.js";
@@ -13,6 +13,7 @@ import { downloadVerified, uploadEncrypted } from "../lib/zg-storage.js";
 import { zgChain, toBytes32Id } from "../lib/zg-chain.js";
 import { decrypt, deriveSessionKey, encrypt, packEncryptedPayload, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
 import { seededShuffle } from "../lib/shuffle.js";
+import { unsealContentKey } from "../lib/timelock.js";
 import { midenBridge } from "../lib/miden-bridge.js";
 import { redisConnection } from "../workers/queues.js";
 import { logger } from "../lib/logger.js";
@@ -72,17 +73,24 @@ export async function startExam(userId: string, sessionId: string): Promise<Reda
   if (session.paper.status !== "READY") {
     throw new HttpError(
       409,
-      "Paper is not READY — the Miden key-timelock step hasn't completed yet (see docs/MIDEN_INTEGRATION.md). " +
+      "Paper is not READY — the tlock key-timelock step hasn't completed yet (see lib/timelock.ts). " +
         "The exam cannot start because there is no backend override key, by design.",
     );
   }
   if (new Date() < session.paper.examStartAt) throw new HttpError(409, "Exam has not started yet");
-  if (!session.paper.midenNoteId || !session.paper.storageRoot) {
-    throw new HttpError(500, "Paper is READY but missing its Miden note or storage root — inconsistent state");
+  if (!session.paper.timelockRef || !session.paper.storageRoot) {
+    throw new HttpError(500, "Paper is READY but missing its timelock ref or storage root — inconsistent state");
   }
 
-  const { wrappedKeyHex } = await midenBridge.consumePaperKeyTimelock(session.paper.midenNoteId);
-  const contentKey = Buffer.from(wrappedKeyHex, "hex");
+  let contentKey: Buffer;
+  try {
+    contentKey = await unsealContentKey(session.paper.timelockRef);
+  } catch (err) {
+    // Real, honest edge case: examStartAt has passed by the server's clock,
+    // but drand's network hasn't confirmed the target round yet (can lag by
+    // up to ~1 beacon period, ~3s — see lib/timelock.ts). Not a bug to hide.
+    throw new HttpError(409, `Exam key not yet unlockable — try again in a few seconds: ${String(err)}`);
+  }
   const packed = await downloadVerified(session.paper.storageRoot);
   const masterPaper = JSON.parse(decrypt(unpackEncryptedPayload(packed), contentKey).toString()) as {
     questions: MasterPaperQuestion[];

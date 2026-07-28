@@ -250,7 +250,7 @@ model Paper {
   masterPaperHash  String?
   chainTxHash      String?     // 0G Chain PaperRegistry anchor tx
 
-  midenNoteId      String?     // Miden testnet P2IDE note carrying wrapped content key
+  timelockRef      String?     // drand/tlock-sealed content key (armored age ciphertext, see lib/timelock.ts); formerly a Miden P2IDE note id before the 2026-07-28 backend switch, knowledge_base.md §11o
   examStartAt      DateTime
   examWindowCloseAt DateTime
 

@@ -37,6 +37,13 @@ const envSchema = z.object({
   ZG_COMPUTE_MODEL: z.string().default("glm-5.2"),
   ZG_COMPUTE_TRUST_MODE: z.enum(["standard", "verified", "private"]).default("private"),
 
+  // Paper key-release timelock — real drand/tlock, see lib/timelock.ts and
+  // knowledge_base.md §11o. Mainnet's "quicknet" beacon is the default
+  // because that's what was actually proven live.
+  TLOCK_NETWORK: z.enum(["mainnet", "testnet"]).default("mainnet"),
+
+  // Miden bridge kept dormant (not deleted) for the submission-commitment
+  // note path only — the paper-key timelock above no longer depends on it.
   MIDEN_NETWORK: z.literal("testnet").default("testnet"),
   MIDEN_BRIDGE_URL: z.string().url(),
   MIDEN_SERVICE_KEYSTORE_PATH: z.string().default("./contracts/miden/keys"),

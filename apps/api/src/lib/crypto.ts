@@ -50,7 +50,7 @@ export function sha256Hex(data: Buffer | string): string {
  * rather than stored per-question, so the access-controlled Paper Generation service
  * can decrypt any accepted question without a separate key-escrow table. This is
  * distinct from a Paper's key, which is NOT derivable like this — it's a fresh random
- * key sealed behind a Miden P2IDE timelock (see lib/miden-bridge.ts), precisely because
+ * key sealed behind a real drand/tlock timelock (see lib/timelock.ts), precisely because
  * that one must be unobtainable before exam start even to this service.
  */
 export function deriveQuestionKey(questionId: string): Buffer {

@@ -1,8 +1,8 @@
 // Evaluation Engine per docs/SYSTEM_ARCHITECTURE.md §4/§8. Two independent
 // halves worth distinguishing: decrypting a student's SUBMITTED answers
-// needs only the session-derived key (no Miden involved, same as autosave),
-// but scoring them requires the official master paper — which, like
-// starting an exam, is genuinely gated on the Miden timelock. So this
+// needs only the session-derived key (no timelock involved, same as
+// autosave), but scoring them requires the official master paper — which,
+// like starting an exam, is genuinely gated on the tlock timelock. So this
 // pipeline can decrypt every submission right now, but cannot score any of
 // them until Paper.status reaches READY. That gate is enforced explicitly
 // below, not glossed over.
@@ -14,7 +14,7 @@ import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { downloadVerified } from "../lib/zg-storage.js";
 import { zgChain, toBytes32Id, computeApplicationKey } from "../lib/zg-chain.js";
 import { decrypt, deriveSessionKey, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
-import { midenBridge } from "../lib/miden-bridge.js";
+import { unsealContentKey } from "../lib/timelock.js";
 import { logger } from "../lib/logger.js";
 import { HttpError } from "../middleware/error.middleware.js";
 import { publish } from "../ws/hub.js";
@@ -38,11 +38,11 @@ export async function runEvaluationPipeline(paperId: string): Promise<void> {
     throw new HttpError(
       409,
       "Paper is not READY — cannot evaluate against an official key that doesn't exist yet. " +
-        "The Miden key-timelock step hasn't completed (see docs/MIDEN_INTEGRATION.md).",
+        "The tlock key-timelock step hasn't completed (see lib/timelock.ts).",
     );
   }
-  if (!paper.midenNoteId || !paper.storageRoot) {
-    throw new HttpError(500, "Paper is READY but missing its Miden note or storage root — inconsistent state");
+  if (!paper.timelockRef || !paper.storageRoot) {
+    throw new HttpError(500, "Paper is READY but missing its timelock ref or storage root — inconsistent state");
   }
 
   const sessions = await sessionRepository.listSubmittedForPaper(paperId);
@@ -51,9 +51,8 @@ export async function runEvaluationPipeline(paperId: string): Promise<void> {
     return;
   }
 
-  // ── Official key: same consume-once pattern as Student Exam Client ──────
-  const { wrappedKeyHex } = await midenBridge.consumePaperKeyTimelock(paper.midenNoteId);
-  const contentKey = Buffer.from(wrappedKeyHex, "hex");
+  // ── Official key: same unseal pattern as Student Exam Client ────────────
+  const contentKey = await unsealContentKey(paper.timelockRef);
   const packed = await downloadVerified(paper.storageRoot);
   const masterPaper = JSON.parse(decrypt(unpackEncryptedPayload(packed), contentKey).toString()) as {
     questions: MasterPaperQuestion[];

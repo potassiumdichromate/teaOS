@@ -68,7 +68,7 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
       const recomputedHash = sha256Hex(plaintext);
       submissionHashMatch = `${recomputedHash}` === session.submissionHash;
 
-      const submissionAnchor = await chainAnchorRepository.findByEntity("StudentExamSession", session.id);
+      const submissionAnchor = await chainAnchorRepository.findByEntity("StudentExamSession", session.id, "SubmissionRegistry");
       answerHashMatch = submissionAnchor?.dataHash === recomputedHash;
     } catch (err) {
       logger.warn({ sessionId: session.id, err }, "Submission storage proof or decryption failed during verification");

@@ -1,7 +1,7 @@
-// Paper Generation pipeline per docs/SYSTEM_ARCHITECTURE.md §4. Real through
-// the 0G Storage/Chain steps; the Miden P2IDE timelock step honestly calls
-// the still-unimplemented bridge (see docs/MIDEN_INTEGRATION.md "Verified API
-// surface") and reports the failure rather than faking a READY status.
+// Paper Generation pipeline per docs/SYSTEM_ARCHITECTURE.md §4. Real end to
+// end, including the timelock step: the content key is sealed via real
+// drand/tlock (lib/timelock.ts) rather than the Miden P2IDE note this used
+// to depend on — see knowledge_base.md §11o for why that switch happened.
 import { prisma } from "../lib/prisma.js";
 import { paperRepository } from "../repositories/paper.repository.js";
 import { chainAnchorRepository } from "../repositories/chainAnchor.repository.js";
@@ -10,7 +10,7 @@ import { selectQuestionsForBlueprint } from "./questionSelection.service.js";
 import { downloadVerified, uploadEncrypted } from "../lib/zg-storage.js";
 import { zgChain, toBytes32Id } from "../lib/zg-chain.js";
 import { decrypt, deriveQuestionKey, encrypt, generateContentKey, packEncryptedPayload, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
-import { midenBridge } from "../lib/miden-bridge.js";
+import { sealContentKey } from "../lib/timelock.js";
 import { logger } from "../lib/logger.js";
 import { HttpError } from "../middleware/error.middleware.js";
 import { publish } from "../ws/hub.js";
@@ -83,26 +83,27 @@ export async function runPaperGenerationPipeline(paperId: string): Promise<void>
     chainTxHash: anchor.txHash,
   });
 
-  // ── Seal the content key behind a Miden P2IDE timelock ───────────────────
-  publish(`paper:${paperId}:status`, { stage: "MIDEN_TIMELOCK" });
+  // ── Seal the content key behind a real drand/tlock timelock ─────────────
+  // (Formerly a Miden P2IDE note — replaced 2026-07-28, see knowledge_base.md
+  // §11o. tlock has no "reclaim height" concept: it's pure IBE encryption,
+  // not an asset-bearing note, so examWindowCloseAt isn't needed here — the
+  // exam-window-close enforcement stays an app-level check elsewhere.)
+  publish(`paper:${paperId}:status`, { stage: "TLOCK_SEAL" });
   try {
-    const timelock = await midenBridge.createPaperKeyTimelock({
-      wrappedKeyHex: contentKey.toString("hex"), // TODO: real key-wrapping once account provisioning lands, see MIDEN_INTEGRATION.md
-      targetAccountId: "service-release-account", // placeholder pending real account bootstrapping
-      timelockAt: paper.examStartAt.toISOString(),
-      reclaimAt: paper.examWindowCloseAt.toISOString(),
-    });
-    await paperRepository.markReady(paperId, timelock.noteId);
-    publish(`paper:${paperId}:status`, { stage: "READY", midenNoteId: timelock.noteId });
-    logger.info({ paperId, noteId: timelock.noteId }, "Paper generation complete — Miden timelock sealed");
+    const sealed = await sealContentKey(contentKey, paper.examStartAt);
+    await paperRepository.markReady(paperId, sealed.ref);
+    publish(`paper:${paperId}:status`, { stage: "READY", timelockRound: sealed.round });
+    logger.info({ paperId, round: sealed.round }, "Paper generation complete — tlock timelock sealed");
   } catch (err) {
-    // Real, honest failure — the bridge is not wired yet (see MIDEN_INTEGRATION.md).
-    // Storage + chain anchoring already succeeded and persisted above; the paper
-    // simply cannot be marked READY (i.e. exam-startable) until the timelock exists.
+    // Storage + chain anchoring already succeeded and persisted above; the
+    // paper simply cannot be marked READY (i.e. exam-startable) until the
+    // seal succeeds. This should be rare (drand's HTTP API being briefly
+    // unreachable) rather than the routine case the old Miden-pending path
+    // was, since drand mainnet is live production infrastructure.
     await auditLogRepository.write("PAPER_GENERATION", {
-      metadata: { paperId, stage: "MIDEN_TIMELOCK_PENDING", error: String(err) },
+      metadata: { paperId, stage: "TLOCK_SEAL_FAILED", error: String(err) },
     });
-    publish(`paper:${paperId}:status`, { stage: "MIDEN_TIMELOCK_PENDING", error: String(err) });
-    logger.warn({ paperId, err }, "Paper assembled and anchored, but Miden timelock is not yet available");
+    publish(`paper:${paperId}:status`, { stage: "TLOCK_SEAL_FAILED", error: String(err) });
+    logger.warn({ paperId, err }, "Paper assembled and anchored, but sealing the content key via tlock failed");
   }
 }

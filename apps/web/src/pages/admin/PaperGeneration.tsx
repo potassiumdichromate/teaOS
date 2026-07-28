@@ -10,7 +10,7 @@ interface PaperDetail {
   storageRoot: string | null;
   masterPaperHash: string | null;
   chainTxHash: string | null;
-  midenNoteId: string | null;
+  timelockRef: string | null;
   questionCount: number;
 }
 
@@ -45,11 +45,7 @@ export default function PaperGeneration() {
       while (Date.now() - started < 180_000) {
         const detail = await api<PaperDetail>(`/admin/papers/${paperId}/pipeline`);
         setPaper(detail);
-        if (detail.status === "READY" || (detail.midenNoteId === null && detail.chainTxHash)) {
-          // Either fully READY, or as far as it can currently get (Miden step
-          // not wired yet — see docs/MIDEN_INTEGRATION.md) — stop polling either way.
-          if (detail.status === "READY") break;
-        }
+        if (detail.status === "READY") break;
         await new Promise((r) => setTimeout(r, 3000));
       }
     } catch (err) {
@@ -64,7 +60,7 @@ export default function PaperGeneration() {
       <Card>
         <CardHeader>
           <CardTitle>Generate master paper</CardTitle>
-          <CardDescription>Blueprint → TEE-validated pool → selection → encrypt → anchor → Miden timelock</CardDescription>
+          <CardDescription>Blueprint → TEE-validated pool → selection → encrypt → anchor → drand/tlock timelock</CardDescription>
         </CardHeader>
         <div className="space-y-3">
           <select value={blueprintId} onChange={(e) => setBlueprintId(e.target.value)} className={inputCls}>
@@ -99,11 +95,11 @@ export default function PaperGeneration() {
             <Row label="Storage root" value={paper.storageRoot ?? "pending"} />
             <Row label="Master paper hash" value={paper.masterPaperHash ?? "pending"} />
             <Row label="Chain anchor tx" value={paper.chainTxHash ?? "pending"} />
-            <Row label="Miden timelock note" value={paper.midenNoteId ?? "not available yet"} />
-            {paper.chainTxHash && !paper.midenNoteId && (
+            <Row label="tlock timelock ref" value={paper.timelockRef ?? "not available yet"} />
+            {paper.chainTxHash && !paper.timelockRef && (
               <p className="mt-2 text-xs text-warning">
-                Encrypted and anchored on 0G Chain, but the Miden key-timelock step isn&apos;t wired yet
-                (see docs/MIDEN_INTEGRATION.md) — the paper cannot be marked READY until it is.
+                Encrypted and anchored on 0G Chain, but sealing the content key via drand/tlock hasn&apos;t
+                succeeded yet — the paper cannot be marked READY until it does.
               </p>
             )}
           </div>

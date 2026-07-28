@@ -20,8 +20,8 @@ export const paperRepository = {
     args: { storageRoot: string; masterPaperHash: string; chainTxHash: string },
   ) => prisma.paper.update({ where: { id }, data: args }),
 
-  markReady: (id: string, midenNoteId: string) =>
-    prisma.paper.update({ where: { id }, data: { status: "READY", midenNoteId } }),
+  markReady: (id: string, timelockRef: string) =>
+    prisma.paper.update({ where: { id }, data: { status: "READY", timelockRef } }),
 
   markPending: (id: string) => prisma.paper.update({ where: { id }, data: { status: "PENDING" } }),
 };

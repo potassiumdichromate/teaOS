@@ -578,12 +578,12 @@ tr:last-child td{border-bottom:0}
       <div class="svc-item">
         <div class="st">Service 03</div>
         <h3>Timelock service</h3>
-        <div class="lang">Rust · drand / tlock</div>
-        <p>A separate process by design, isolated behind the kernel's <span class="mono">seal</span>
-          primitive so the decentralized network underneath it is swappable without touching
-          anything above. Proved first against Miden's protocol — a real transaction executed
-          end-to-end on its devnet — production is moving to drand/tlock's mature threshold network
-          rather than a pre-1.0 client whose public testnet has an open rollout gap.</p>
+        <div class="lang">TypeScript · drand / tlock</div>
+        <p>Sits behind the kernel's <span class="mono">seal</span> primitive so the decentralized
+          network underneath it is swappable without touching anything above — proved when we
+          actually swapped it: first against Miden's protocol on its devnet, now against drand's
+          production threshold network, with no change to the interface the rest of the system
+          calls.</p>
         <ul class="can">
           <li><span class="y">can</span><span>Seal keys, release them at a target round</span></li>
           <li><span class="n">cannot</span><span>Release a sealed key before its target round</span></li>
@@ -602,11 +602,13 @@ tr:last-child td{border-bottom:0}
         </ul>
       </div>
     </div>
-    <p class="cap">Isolating the timelock service on its own thread wasn't a stylistic choice —
-      it's what the first working implementation, against Miden's client, required: its transaction
-      prover loses its <span class="mono">Send</span> bound at an API boundary, so it can't be
-      shared across an async server's request threads. That isolation pattern carries forward
-      regardless of which network sits behind the <span class="mono">seal</span> primitive.</p>
+    <p class="cap">The first working implementation, against Miden's client, needed its own isolated
+      thread — its transaction prover loses its <span class="mono">Send</span> bound at an API
+      boundary, so it couldn't share an async server's request threads. Swapping to drand/tlock
+      removed that constraint entirely: sealing is a pure encryption call against a public beacon,
+      so it now runs as a direct library call in the same process as everything else. The interface
+      above it — <span class="mono">seal</span>, <span class="mono">schedule</span> — never changed;
+      only the machinery behind it got simpler.</p>
   </div>
 </section>
 
@@ -671,10 +673,12 @@ tr:last-child td{border-bottom:0}
 
     <p>We proved this end to end against Miden's protocol first — sealing the key into a timelocked
       note whose script refuses release until a target block height, verified with a real
-      transaction executing on Miden's devnet. Production is migrating to <b>drand/tlock</b>: the
+      transaction executing on Miden's devnet. Production runs on <b>drand/tlock</b> instead: the
       same guarantee, built on a threshold-signature network that has run in production for years
-      rather than a pre-1.0 client. The mechanism changes; the guarantee — release enforced by a
-      decentralized network, with no admin override anywhere in the path — does not.</p>
+      rather than a pre-1.0 client. The mechanism changed after Miden's own public testnet spent two
+      days rejecting its newest published SDK version — we switched rather than keep waiting on
+      someone else's rollout. The guarantee — release enforced by a decentralized network, with no
+      admin override anywhere in the path — did not change.</p>
 
     <div class="gate" id="gate">
       <div class="halves">
@@ -1174,16 +1178,21 @@ tr:last-child td{border-bottom:0}
           <tr><td>Paper assembly</td><td>Select → assemble → re-encrypt → anchor</td><td>0G mainnet</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Kernel gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Timelock proof-of-concept</td><td>Self-issued faucet, mint, timelocked note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
-          <tr><td>Timelock production path</td><td>Migrating to drand/tlock's threshold network</td><td>drand mainnet beacon</td><td><span class="pend">in progress</span></td></tr>
+          <tr><td>Timelock production path</td><td>Content key sealed to a future beacon round</td><td>drand mainnet · quicknet</td><td><span class="ok">live</span></td></tr>
+          <tr><td>Full exam lifecycle</td><td>Seal → gate refused → gate opens → start → submit → score → verify</td><td>0G mainnet + drand mainnet</td><td><span class="ok">verified</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <p style="margin-top:1.5rem"><b>On that last row, plainly:</b> the timelock guarantee is proven —
-      a real transaction executed end to end on Miden's devnet. We're migrating the production
-      backend to drand/tlock, a threshold-signature network that has run in production for years,
-      rather than depending further on a pre-1.0 client whose public testnet has an open
-      compatibility gap with its own newest SDK release. Same guarantee, sturdier foundation.</p>
+    <p style="margin-top:1.5rem"><b>On those last two rows, plainly:</b> the timelock guarantee was
+      first proven on Miden's devnet, then the production backend was switched to drand/tlock — a
+      threshold-signature network that has run in production for years — after Miden's public
+      testnet spent two straight days rejecting the newest client its own team had shipped. Same
+      guarantee, sturdier foundation, no separate process required this time: sealing and unsealing
+      are now a direct library call in the application's own request path, not a second isolated
+      service. A full exam ran on it end to end — a paper reached the "ready to start" state for the
+      first time, a candidate session was correctly refused before the seal opened and correctly
+      admitted after, and the resulting score cleared independent re-verification against the chain.</p>
 
     <p class="eyebrow" style="margin-top:2.5rem">On-chain anchors — 0G mainnet</p>
     <div class="tbl-wrap">
@@ -1261,7 +1270,8 @@ tr:last-child td{border-bottom:0}
         <div class="qh"><span class="qn">Q1</span><span class="qd">Jul–Sep 2026</span></div>
         <h3>Close the loop, get real users</h3>
         <ul>
-          <li>Timelock migrated to drand/tlock</li>
+          <li>Timelock migrated to drand/tlock — done</li>
+          <li>Submission commitment moved on-chain, dropping the last Miden dependency</li>
           <li>Public verification portal shipped</li>
           <li>2 design partners signed</li>
           <li>First live pilot examination</li>
