@@ -29,6 +29,16 @@ const DESC = 'teaOS is the operating system for high-stakes assessment — a ker
 const titleMatch = body.match(/<title>([\s\S]*?)<\/title>\s*/);
 const TITLE = titleMatch ? titleMatch[1].trim() : 'teaOS';
 const rest = titleMatch ? body.replace(titleMatch[0], '') : body;
+const FAVICON = uri('hex.png', 'image/png');
+// og:image / twitter:image deliberately NOT set here: Open Graph and Twitter
+// Card crawlers (Facebook, LinkedIn, Slack, X) require a fetchable absolute
+// https:// URL for the preview image — a data: URI is not fetchable by an
+// external crawler and would silently produce no image on every platform
+// that matters, not a working preview. That needs a real static asset
+// deployed alongside index.html and the site's actual production domain,
+// neither of which this build script has. Favicon is different: browsers
+// render data: URIs for rel="icon" directly, no external fetch involved, so
+// that one is real.
 const doc = `<!doctype html>
 <html lang="en">
 <head>
@@ -36,12 +46,16 @@ const doc = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>${TITLE}</title>
 <meta name="description" content="${DESC}" />
+<link rel="icon" href="${FAVICON}" type="image/png" />
+<link rel="apple-touch-icon" href="${FAVICON}" />
 <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
 <meta name="theme-color" content="#F8F9FA" media="(prefers-color-scheme: light)" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="teaOS — The operating system for high-stakes assessment" />
 <meta property="og:description" content="${DESC}" />
-<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="teaOS — The operating system for high-stakes assessment" />
+<meta name="twitter:description" content="${DESC}" />
 </head>
 <body>
 ${rest}

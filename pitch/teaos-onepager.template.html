@@ -421,6 +421,46 @@ tr:last-child td{border-bottom:0}
   </div>
 </section>
 
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Why now</p>
+    <h2>The primitives this needs didn't exist five years ago.</h2>
+    <p class="lead">Leaked papers and disputed results are as old as assessment itself. What's new
+      is that the infrastructure to close the gap properly has shipped, in production, only in the
+      last few years — this isn't a research bet, it's an assembly job that finally became possible.</p>
+
+    <div class="grid four">
+      <div class="card">
+        <div class="k">Confidential compute</div>
+        <h3>Shipped, not theorized</h3>
+        <p>Intel TDX enclaves with attestable inference are a selectable API tier today, not a
+          research paper — we verified this live against a production provider before depending on
+          it.</p>
+      </div>
+      <div class="card">
+        <div class="k">Threshold cryptography</div>
+        <h3>Left the whitepaper</h3>
+        <p>drand's threshold beacon has run in production for years across independent operators.
+          Timelock encryption on top of it is a maintained library, not an unproven primitive.</p>
+      </div>
+      <div class="card">
+        <div class="k">AI review</div>
+        <h3>Good enough to gate, not just assist</h3>
+        <p>Duplicate detection, bias, and difficulty prediction are reliable enough now to gate
+          acceptance into a question bank — advisory input to deterministic rules, not a human's
+          only line of defense.</p>
+      </div>
+      <div class="card">
+        <div class="k">Assessment volume</div>
+        <h3>Compounding faster than trust</h3>
+        <p>Hiring, certification, and government testing keep moving online while the underlying
+          leak rate hasn't improved — the failure mode this exists to close is getting more
+          frequent, not less.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">The system model</p>
@@ -1099,10 +1139,10 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Workloads</p>
     <h2>Who runs on it.</h2>
-    <p class="lead">Four segments, one shared problem: they all make consequential decisions from
+    <p class="lead">Five segments, one shared problem: they all make consequential decisions from
       test scores, and none of them can currently prove the test wasn't compromised.</p>
 
-    <div class="grid four">
+    <div class="grid three">
       <div class="seg">
         <div class="sh">
           <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg></span>
@@ -1146,6 +1186,18 @@ tr:last-child td{border-bottom:0}
           education requirements.</p>
         <p class="pain">Proxy testing and credential fraud attack the one thing a certification body
           actually sells — the belief that the certificate means something.</p>
+      </div>
+      <div class="seg">
+        <div class="sh">
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L18 4"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 19"/></svg></span>
+          <h3>Recruitment &amp; hiring platforms</h3>
+        </div>
+        <span class="vol">Embedded in platforms serving 50K – 2M candidates / year</span>
+        <p>ATS vendors and assessment marketplaces that want to sell verifiable integrity to their
+          own customers without becoming a cryptography company themselves — one API, resold under
+          their own brand.</p>
+        <p class="pain">Every platform in this category currently sells trust it can't back up. A
+          flagged candidate has no more recourse with the platform than with the employer who used it.</p>
       </div>
     </div>
     <p class="cap">We're starting with enterprise recruitment and private universities: shorter
@@ -1215,11 +1267,12 @@ tr:last-child td{border-bottom:0}
     <p class="eyebrow">Business model</p>
     <h2>We charge institutions. Candidates never pay.</h2>
     <p class="lead">B2B SaaS sold to enterprises, universities, assessment boards, and certification
-      bodies. Priced on candidate volume, because that's what the customer already budgets against.</p>
+      bodies — direct and through platforms that resell us as their own integrity layer. Priced on
+      candidate volume, because that's what the customer already budgets against.</p>
 
-    <div class="grid three">
+    <div class="grid four">
       <div class="card">
-        <div class="k">Line 1 · Platform</div>
+        <div class="k">Line 1 · Licence</div>
         <h3>Annual licence</h3>
         <p>Tiered by candidate volume and modules. Covers the authoring stack, blueprint engine,
           admin console, and audit tooling.</p>
@@ -1238,6 +1291,13 @@ tr:last-child td{border-bottom:0}
         <p>Per-centre licence for the gateway, machine health monitoring, and offline-tolerant
           delivery client.</p>
         <ul><li>$120 per centre / cycle</li><li>Optional hardware kit</li></ul>
+      </div>
+      <div class="card">
+        <div class="k">Line 4 · Platform</div>
+        <h3>Revenue share via partners</h3>
+        <p>ATS vendors and assessment marketplaces integrate the kernel once and resell verifiable
+          assessment under their own brand. We never touch their customer relationship or pricing.</p>
+        <ul><li>15% – 20% of partner-billed volume</li><li>Self-serve API, no custom integration</li></ul>
       </div>
     </div>
 
