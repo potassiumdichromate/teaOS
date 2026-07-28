@@ -39,7 +39,7 @@ export const sessionRepository = {
 
   markSubmitted: (
     id: string,
-    args: { answerStorageRoot: string; submissionHash: string; chainTxHash: string; midenNoteId?: string },
+    args: { answerStorageRoot: string; submissionHash: string; chainTxHash: string },
   ) =>
     prisma.studentExamSession.update({
       where: { id },

@@ -44,7 +44,7 @@ export async function checkAuthorization(paperId: string) {
     reason: authorized
       ? undefined
       : paper.status !== "READY"
-        ? "Paper is not READY — Miden key-timelock step hasn't completed (see docs/MIDEN_INTEGRATION.md)"
+        ? "Paper is not READY — the tlock key-timelock step hasn't completed (see lib/timelock.ts)"
         : "Outside the exam time window",
   };
 }

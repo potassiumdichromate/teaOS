@@ -333,8 +333,9 @@ model StudentExamSession {
 
   answerStorageRoot String?       // encrypted answers blob on 0G Storage
   submissionHash    String?
-  chainTxHash       String?       // 0G Chain SubmissionRegistry anchor tx
-  midenNoteId       String?       // Miden private submission note (nullifier prevents resubmission)
+  chainTxHash       String?       // 0G Chain SubmissionRegistry anchor tx — anchorSubmission's own
+                                   // require(blockTimestamp==0) IS the double-submission guard, see
+                                   // knowledge_base.md §11q; no separate commitment note/id needed
 
   result            EvaluationResult?
 

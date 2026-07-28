@@ -1,17 +1,14 @@
 // Student Verification per docs/SYSTEM_ARCHITECTURE.md §5: every check is
 // itemized and independently re-derived, never a single opaque boolean.
-// Public, no login — see docs/API_REFERENCE.md. Each check either genuinely
-// passes, genuinely fails, or is honestly reported unavailable (e.g. Miden)
-// — nothing here is faked to make the response look more complete than the
-// system's actual current state.
+// Public, no login — see docs/API_REFERENCE.md. Nothing here is faked to
+// make the response look more complete than the system's actual state.
 import type { VerifyResponse } from "@nvei/shared";
 import { prisma } from "../lib/prisma.js";
 import { sessionRepository } from "../repositories/session.repository.js";
 import { chainAnchorRepository } from "../repositories/chainAnchor.repository.js";
 import { downloadVerified } from "../lib/zg-storage.js";
-import { verifyTransaction } from "../lib/zg-chain.js";
+import { verifyTransaction, getSubmissionAnchor } from "../lib/zg-chain.js";
 import { decrypt, deriveSessionKey, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
-import { midenBridge } from "../lib/miden-bridge.js";
 import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { logger } from "../lib/logger.js";
 
@@ -25,7 +22,7 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     answerHashMatch: false,
     submissionHashMatch: false,
     resultHashMatch: false,
-    midenNoteValid: false,
+    onChainCommitmentValid: false,
     storageProofValid: false,
     chainTxValid: false,
     overallVerified: false,
@@ -52,13 +49,22 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     submissionChainTx: session.chainTxHash ?? undefined,
     resultChainTx: session.result.chainTxHash ?? undefined,
     storageRoot: session.answerStorageRoot ?? undefined,
-    midenNoteId: session.midenNoteId ?? undefined,
   };
 
   // ── Submission hash: recompute from the actual stored ciphertext ────────
   let submissionHashMatch = false;
   let storageProofValid = false;
   let answerHashMatch = false;
+  // On-chain commitment: read the deployed SubmissionRegistry contract
+  // directly (not our DB, not a bridge) — see lib/zg-chain.ts's
+  // getSubmissionAnchor for why this is the real double-submission
+  // guarantee (SubmissionRegistry.sol's `require(blockTimestamp==0)`
+  // already made it structurally impossible for this session to have been
+  // anchored twice; this just independently confirms the commitment exists
+  // and its content matches). Replaced the old Miden submission-note check
+  // 2026-07-28 — that bridge was never actually wired (§11d/§11n), so the
+  // check it backed could never succeed. See knowledge_base.md §11q.
+  let onChainCommitmentValid = false;
   if (session.answerStorageRoot && session.submissionHash) {
     try {
       const packed = await downloadVerified(session.answerStorageRoot); // throws if the Merkle proof doesn't verify
@@ -70,8 +76,11 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
 
       const submissionAnchor = await chainAnchorRepository.findByEntity("StudentExamSession", session.id, "SubmissionRegistry");
       answerHashMatch = submissionAnchor?.dataHash === recomputedHash;
+
+      const onChainAnchor = await getSubmissionAnchor(session.id);
+      onChainCommitmentValid = onChainAnchor?.submissionHash === `0x${recomputedHash}`;
     } catch (err) {
-      logger.warn({ sessionId: session.id, err }, "Submission storage proof or decryption failed during verification");
+      logger.warn({ sessionId: session.id, err }, "Submission storage proof, decryption, or on-chain read failed during verification");
     }
   }
 
@@ -99,19 +108,8 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     (session.chainTxHash ? await verifyTransaction(session.chainTxHash) : false) &&
     (session.result.chainTxHash ? await verifyTransaction(session.result.chainTxHash) : false);
 
-  // ── Miden: honestly unavailable until the bridge is wired ───────────────
-  let midenNoteValid = false;
-  if (session.midenNoteId) {
-    try {
-      const status = await midenBridge.getNoteStatus(session.midenNoteId);
-      midenNoteValid = status.status === "CONSUMED";
-    } catch (err) {
-      logger.warn({ sessionId: session.id, err }, "Miden note status check unavailable (bridge not yet wired)");
-    }
-  }
-
   const overallVerified =
-    submissionHashMatch && answerHashMatch && resultHashMatch && storageProofValid && chainTxValid && midenNoteValid;
+    submissionHashMatch && answerHashMatch && resultHashMatch && storageProofValid && chainTxValid && onChainCommitmentValid;
 
   await auditLogRepository.write("VERIFICATION_CHECK", {
     metadata: { applicationId, sessionId: session.id, overallVerified },
@@ -122,7 +120,7 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     answerHashMatch,
     submissionHashMatch,
     resultHashMatch,
-    midenNoteValid,
+    onChainCommitmentValid,
     storageProofValid,
     chainTxValid,
     overallVerified,

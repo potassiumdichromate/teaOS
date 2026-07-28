@@ -14,7 +14,6 @@ import { zgChain, toBytes32Id } from "../lib/zg-chain.js";
 import { decrypt, deriveSessionKey, encrypt, packEncryptedPayload, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
 import { seededShuffle } from "../lib/shuffle.js";
 import { unsealContentKey } from "../lib/timelock.js";
-import { midenBridge } from "../lib/miden-bridge.js";
 import { redisConnection } from "../workers/queues.js";
 import { logger } from "../lib/logger.js";
 import { HttpError } from "../middleware/error.middleware.js";
@@ -198,25 +197,19 @@ export async function submitExam(userId: string, sessionId: string) {
     blockNumber: BigInt(anchor.blockNumber),
   });
 
-  let midenNoteId: string | undefined;
-  try {
-    const note = await midenBridge.createSubmissionNote({
-      sessionId,
-      submissionContentHash: submissionHash,
-      intakeAccountId: "service-release-account", // see MIDEN_INTEGRATION.md — same placeholder pending real account provisioning
-    });
-    midenNoteId = note.noteId;
-  } catch (err) {
-    logger.warn({ sessionId, err }, "Submission stored and anchored, but Miden commitment note is not yet available");
-  }
-
+  // Double-submission prevention no longer routes through a Miden note —
+  // `zgChain.anchorSubmission` above already reverted on-chain if this
+  // sessionId had ever been anchored before (SubmissionRegistry.sol:
+  // `require(anchors[sessionId].blockTimestamp == 0)`), so reaching this
+  // line at all is proof the commitment is fresh. See knowledge_base.md
+  // §11q for why this real, already-deployed guarantee replaced the Miden
+  // submission-note path (which was never actually wired — see §11d/§11n).
   await sessionRepository.markSubmitted(sessionId, {
     answerStorageRoot: upload.rootHash,
     submissionHash,
     chainTxHash: anchor.txHash,
-    midenNoteId,
   });
 
   await redisConnection.del(answersKey(sessionId));
-  return { submitted: true, midenNoteId: midenNoteId ?? null };
+  return { submitted: true, chainTxHash: anchor.txHash };
 }

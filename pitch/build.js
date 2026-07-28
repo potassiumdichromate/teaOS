@@ -24,8 +24,8 @@ fs.writeFileSync(path.join(__dirname, 'artifact.html'), body);
 // must declare its own viewport. Without the meta tag mobile browsers lay
 // the page out at ~980px and scale it down, which silently defeats every
 // mobile breakpoint in the stylesheet.
-const DESC = 'teaOS is the operating system for examinations — a kernel that makes exam '
-  + 'integrity a property of the system rather than a promise from the institution.';
+const DESC = 'teaOS is the operating system for high-stakes assessment — a kernel that makes '
+  + 'assessment integrity a property of the system rather than a promise from the institution.';
 const titleMatch = body.match(/<title>([\s\S]*?)<\/title>\s*/);
 const TITLE = titleMatch ? titleMatch[1].trim() : 'teaOS';
 const rest = titleMatch ? body.replace(titleMatch[0], '') : body;
@@ -39,7 +39,7 @@ const doc = `<!doctype html>
 <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
 <meta name="theme-color" content="#F8F9FA" media="(prefers-color-scheme: light)" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="teaOS — The operating system for examinations" />
+<meta property="og:title" content="teaOS — The operating system for high-stakes assessment" />
 <meta property="og:description" content="${DESC}" />
 <meta name="twitter:card" content="summary_large_image" />
 </head>

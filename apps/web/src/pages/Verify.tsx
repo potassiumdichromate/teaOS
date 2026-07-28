@@ -8,7 +8,7 @@ interface VerifyResponse {
   answerHashMatch: boolean;
   submissionHashMatch: boolean;
   resultHashMatch: boolean;
-  midenNoteValid: boolean;
+  onChainCommitmentValid: boolean;
   storageProofValid: boolean;
   chainTxValid: boolean;
   overallVerified: boolean;
@@ -16,7 +16,6 @@ interface VerifyResponse {
     submissionChainTx?: string;
     resultChainTx?: string;
     storageRoot?: string;
-    midenNoteId?: string;
   };
 }
 
@@ -27,7 +26,7 @@ const CHECKS: { key: keyof VerifyResponse; label: string; hint: string }[] = [
   { key: "resultHashMatch", label: "Result hash", hint: "Recomputed from your score components, matches DB and 0G Chain's ResultRegistry" },
   { key: "storageProofValid", label: "0G Storage proof", hint: "Merkle inclusion proof for your encrypted answers blob verifies" },
   { key: "chainTxValid", label: "0G Chain transactions", hint: "Anchor transactions independently re-fetched from the chain, not our own mirror" },
-  { key: "midenNoteValid", label: "Miden submission note", hint: "Not available yet — Miden bridge isn't wired (see docs/MIDEN_INTEGRATION.md)" },
+  { key: "onChainCommitmentValid", label: "On-chain commitment", hint: "Your submission's hash is anchored exactly once on 0G Chain's SubmissionRegistry, re-read directly from the contract" },
 ];
 
 export default function Verify() {

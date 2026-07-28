@@ -31,7 +31,7 @@ export const verifyResponseSchema = z.object({
   answerHashMatch: z.boolean(),
   submissionHashMatch: z.boolean(),
   resultHashMatch: z.boolean(),
-  midenNoteValid: z.boolean(),
+  onChainCommitmentValid: z.boolean(),
   storageProofValid: z.boolean(),
   chainTxValid: z.boolean(),
   overallVerified: z.boolean(),
@@ -39,7 +39,6 @@ export const verifyResponseSchema = z.object({
     submissionChainTx: z.string().optional(),
     resultChainTx: z.string().optional(),
     storageRoot: z.string().optional(),
-    midenNoteId: z.string().optional(),
   }),
 });
 export type VerifyResponse = z.infer<typeof verifyResponseSchema>;

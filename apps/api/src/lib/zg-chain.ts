@@ -22,6 +22,13 @@ const ANCHOR_ABIS = {
   SubmissionRegistry: [
     "function anchorSubmission(bytes32 sessionId, bytes32 submissionHash, bytes32 paperId) external",
     "event SubmissionAnchored(bytes32 indexed sessionId, bytes32 submissionHash, bytes32 paperId)",
+    // Auto-generated getter for the public `anchors` mapping — the read side
+    // of the same guarantee `anchorSubmission`'s `require(blockTimestamp==0)`
+    // enforces on write. This is the real, already-deployed, protocol-level
+    // double-submission guard (a student's session can only ever be
+    // anchored once, forever, enforced by the contract itself) — see
+    // getSubmissionAnchor below and knowledge_base.md §11q.
+    "function anchors(bytes32) view returns (bytes32 submissionHash, bytes32 paperId, uint64 blockTimestamp)",
   ],
   ResultRegistry: [
     "function anchorResult(bytes32 applicationKey, bytes32 resultHash, bytes32 sessionId) external",
@@ -55,6 +62,17 @@ function contractFor(name: RegistryName): ethers.Contract {
     throw new Error("ZG_SERVICE_PRIVATE_KEY is not configured — chain anchoring requires a signer.");
   }
   return new ethers.Contract(address, ANCHOR_ABIS[name], signer);
+}
+
+// Read-only calls (view functions) never need a signer — this deliberately
+// stays independent of ZG_SERVICE_PRIVATE_KEY so a public, unauthenticated
+// check (like /verify) works against the chain's own RPC and nothing else.
+function readOnlyContractFor(name: RegistryName): ethers.Contract {
+  const address = ADDRESSES[name];
+  if (!address) {
+    throw new Error(`${name.toUpperCase()}_ADDRESS is not configured.`);
+  }
+  return new ethers.Contract(address, ANCHOR_ABIS[name], provider);
 }
 
 export interface AnchorResult {
@@ -117,4 +135,29 @@ export async function getChainBlockNumber(): Promise<number> {
 export async function verifyTransaction(txHash: string): Promise<boolean> {
   const receipt = await provider.getTransactionReceipt(txHash);
   return receipt !== null && receipt.status === 1;
+}
+
+/**
+ * Reads a session's submission commitment directly from the deployed
+ * SubmissionRegistry contract — not our Postgres mirror, not a bridge.
+ * `blockTimestamp === 0` means nothing was ever anchored for this
+ * sessionId; any non-zero value is proof-by-construction that
+ * `anchorSubmission`'s `require(anchors[sessionId].blockTimestamp == 0)`
+ * guard let exactly one write through and would revert a second one — the
+ * real, protocol-level double-submission guarantee, independently
+ * confirmable by anyone with the sessionId and an RPC endpoint. See
+ * knowledge_base.md §11q for why this replaced the Miden submission-note
+ * check (which could never actually succeed — that bridge was never wired).
+ */
+export async function getSubmissionAnchor(
+  sessionId: string,
+): Promise<{ submissionHash: string; paperId: string; blockTimestamp: number } | null> {
+  const contract = readOnlyContractFor("SubmissionRegistry");
+  const [submissionHash, paperId, blockTimestamp] = (await contract.anchors(toBytes32Id(sessionId))) as [
+    string,
+    string,
+    bigint,
+  ];
+  if (blockTimestamp === 0n) return null;
+  return { submissionHash, paperId, blockTimestamp: Number(blockTimestamp) };
 }

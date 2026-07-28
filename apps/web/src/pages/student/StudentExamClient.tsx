@@ -28,7 +28,7 @@ export default function StudentExamClient() {
   const [current, setCurrent] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{ midenNoteId: string | null } | null>(null);
+  const [submitResult, setSubmitResult] = useState<{ chainTxHash: string } | null>(null);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function StudentExamClient() {
     if (!window.confirm("Submit your exam? This cannot be undone.")) return;
     setBusy(true);
     try {
-      const result = await api<{ midenNoteId: string | null }>("/student/exam/submit", {
+      const result = await api<{ chainTxHash: string }>("/student/exam/submit", {
         method: "POST",
         body: JSON.stringify({ sessionId: session.sessionId }),
       });
@@ -123,8 +123,7 @@ export default function StudentExamClient() {
             <CardDescription>Your answers are encrypted, uploaded, and anchored on 0G Chain</CardDescription>
           </CardHeader>
           <p className="text-sm text-muted-foreground">
-            Miden submission note:{" "}
-            {submitResult.midenNoteId ?? "not available yet — commitment note pending Miden integration (see docs/MIDEN_INTEGRATION.md), submission is still recorded on 0G Storage/Chain"}
+            0G Chain anchor tx: <span className="break-all">{submitResult.chainTxHash}</span>
           </p>
         </Card>
       </div>

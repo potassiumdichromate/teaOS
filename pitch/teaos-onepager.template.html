@@ -1,4 +1,4 @@
-<title>teaOS — Trusted Examination Architecture</title>
+<title>teaOS — Trusted Evaluation Architecture</title>
 <style>
 :root{
   --ink:#111111; --graphite:#2B2B2B; --emerald:#0F8F73; --mint:#52C7A5;
@@ -376,14 +376,14 @@ tr:last-child td{border-bottom:0}
 <header class="hero">
   <div class="wrap">
     <img class="hero-logo" src="{{LOGO_DARK}}" alt="teaOS" />
-    <h1>The operating system for examinations.</h1>
-    <p class="lead">Every high-stakes exam on earth runs on improvised software — a question bank
-      from one vendor, delivery from another, proctoring from a third. teaOS is the layer
+    <h1>The operating system for high-stakes assessment.</h1>
+    <p class="lead">Every high-stakes assessment on earth runs on improvised software — a question
+      bank from one vendor, delivery from another, proctoring from a third. teaOS is the layer
       underneath all of it: a kernel that makes integrity a property of the system rather than a
       promise from the institution.</p>
     <ul class="tea">
       <li><b>T</b> — Trusted</li>
-      <li><b>E</b> — Examination</li>
+      <li><b>E</b> — Evaluation</li>
       <li><b>A</b> — Architecture</li>
     </ul>
     <p class="byline">A HorizonX Labs company</p>
@@ -393,10 +393,10 @@ tr:last-child td{border-bottom:0}
 <section class="sec">
   <div class="wrap">
     <p class="eyebrow">The problem</p>
-    <h2>Examinations never got an operating system.</h2>
+    <h2>Assessment never got an operating system.</h2>
     <p class="lead">Every other domain that handles something valuable eventually grew a layer that
       handles it properly. Payments got settlement rails. Healthcare got records systems.
-      Examinations got a spreadsheet, a mail merge, and a lot of trust.</p>
+      Assessment got a spreadsheet, a mail merge, and a lot of trust.</p>
     <p>What institutions run today isn't a platform — it's an assembly. A question bank in one
       vendor's database. Delivery through a second vendor's portal. Proctoring bolted on from a
       third. Results computed somewhere else entirely. Every handoff between them is a place where
@@ -409,9 +409,9 @@ tr:last-child td{border-bottom:0}
       requires trust at every seam. That layer has to exist underneath, or it doesn't exist.</div>
     <div class="stat-row">
       <div class="stat"><div class="n">$28B</div><div class="k">Global assessment and testing market</div></div>
-      <div class="stat"><div class="n">300M+</div><div class="k">People sitting high-stakes exams each year</div></div>
-      <div class="stat"><div class="n">4–6</div><div class="k">Separate vendors in a typical exam stack</div></div>
-      <div class="stat"><div class="n">Zero</div><div class="k">Of them can prove the exam wasn't compromised</div></div>
+      <div class="stat"><div class="n">300M+</div><div class="k">People sitting high-stakes assessments each year</div></div>
+      <div class="stat"><div class="n">4–6</div><div class="k">Separate vendors in a typical assessment stack</div></div>
+      <div class="stat"><div class="n">Zero</div><div class="k">Of them can prove the result wasn't compromised</div></div>
     </div>
   </div>
 </section>
@@ -427,13 +427,14 @@ tr:last-child td{border-bottom:0}
     <div class="ring">
       <div class="ring-l">
         <div class="rl">Ring 3 · Userland</div>
-        <h3>Exam workloads</h3>
-        <p>Different exam types are different programs running on the same kernel. A recruitment
-          assessment and a national entrance test have wildly different rules, scale, and scoring —
-          and identical integrity guarantees, because those don't come from the application.</p>
+        <h3>Assessment workloads</h3>
+        <p>Different assessment types are different programs running on the same kernel. A
+          recruitment assessment and a national entrance test have wildly different rules, scale,
+          and scoring — and identical integrity guarantees, because those don't come from the
+          application.</p>
         <div class="items">
           <span>Entrance tests</span><span>Recruitment assessment</span><span>Certification</span>
-          <span>Semester exams</span><span>Licensing</span><span>Internal promotion</span>
+          <span>Semester assessment</span><span>Licensing</span><span>Internal promotion</span>
         </div>
       </div>
       <div class="ring-l">
@@ -468,8 +469,8 @@ tr:last-child td{border-bottom:0}
       </div>
     </div>
     <p class="cap">The reason this matters commercially: an institution buying teaOS isn't buying an
-      exam product they'll outgrow. They're buying a substrate that every future assessment they
-      run can sit on, including ones we haven't built the userland for yet.</p>
+      assessment product they'll outgrow. They're buying a substrate that every future assessment
+      they run can sit on, including ones we haven't built the userland for yet.</p>
   </div>
 </section>
 
@@ -477,9 +478,9 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Kernel interface</p>
     <h2>Seven primitives. Everything else is composition.</h2>
-    <p class="lead">These are the operations the kernel exposes. An exam — any exam — is a sequence
-      of calls into them. Each one carries a guarantee the caller cannot weaken, no matter what
-      privileges the caller holds.</p>
+    <p class="lead">These are the operations the kernel exposes. An assessment — any assessment — is
+      a sequence of calls into them. Each one carries a guarantee the caller cannot weaken, no
+      matter what privileges the caller holds.</p>
 
     <div class="sys">
       <div class="sys-row">
@@ -503,7 +504,7 @@ tr:last-child td{border-bottom:0}
       <div class="sys-row">
         <div class="sys-call">commit(submission)</div>
         <p>Publishes a private, non-repudiable commitment to a submission. Reveals neither identity
-          nor content; a nullifier prevents a second silent submission.</p>
+          nor content; the registry itself refuses a second write for the same session, permanently.</p>
         <div class="guard">Guarantee — a submission cannot be altered after the fact, or denied to have happened.</div>
       </div>
       <div class="sys-row">
@@ -615,7 +616,7 @@ tr:last-child td{border-bottom:0}
         <dl>
           <dt>Held by</dt><dd>Crypto workers only</dd>
           <dt>Lifetime</dt><dd>Rotating, long-lived</dd>
-          <dt>Protects</dt><dd>The bank, not any single exam</dd>
+          <dt>Protects</dt><dd>The bank, not any single assessment</dd>
         </dl>
       </div>
       <div class="keyc eph">
@@ -626,7 +627,7 @@ tr:last-child td{border-bottom:0}
         <dl>
           <dt>Held by</dt><dd>A sealed note, after assembly</dd>
           <dt>Lifetime</dt><dd>Seconds, on our side</dd>
-          <dt>Protects</dt><dd>Exactly one exam paper</dd>
+          <dt>Protects</dt><dd>Exactly one assessment paper</dd>
         </dl>
       </div>
     </div>
@@ -636,7 +637,7 @@ tr:last-child td{border-bottom:0}
       fresh content key, encrypt under it, upload the ciphertext, anchor its hash — and only then
       seal the key and drop it.</p>
 
-    <div class="pull">Between assembly and exam start, the paper key exists in exactly one place:
+    <div class="pull">Between assembly and assessment start, the paper key exists in exactly one place:
       inside a sealed note the network refuses to open. Not in a database. Not in a vault we
       control. If our entire infrastructure were seized during that window, the paper would still
       be unreadable.</div>
@@ -683,14 +684,14 @@ tr:last-child td{border-bottom:0}
       </div>
       <div class="lockrow">
         <div class="lockwrap">
-          <svg width="46" height="52" viewBox="0 0 46 52" role="img" aria-label="Timelock, sealed until exam start">
+          <svg width="46" height="52" viewBox="0 0 46 52" role="img" aria-label="Timelock, sealed until assessment start">
             <path class="lockbody shackle" d="M13 22V15a10 10 0 0 1 20 0v7" stroke-linecap="round"/>
             <rect class="lockbody" x="7" y="22" width="32" height="25" rx="3"/>
             <circle class="lockdot" cx="23" cy="34" r="3.2"/>
           </svg>
         </div>
         <div class="lockstate" id="lockstate">Sealed · release point not reached</div>
-        <div class="lockmeta">release target = exam start &nbsp;·&nbsp; window close = candidates locked out</div>
+        <div class="lockmeta">release target = assessment start &nbsp;·&nbsp; window close = candidates locked out</div>
       </div>
       <div class="gate-out">encrypted paper + released key = readable, and only now</div>
     </div>
@@ -699,8 +700,8 @@ tr:last-child td{border-bottom:0}
       to open it from every role the system defines, on a live deployment.</p>
     <ul class="deny-list">
       <li><span class="role">Admin</span><span class="x">denied</span><span>Highest-privilege account. There is no override key to hand them.</span></li>
-      <li><span class="role">Exam centre</span><span class="x">denied</span><span>Authorization endpoint returns unauthorized, with the reason.</span></li>
-      <li><span class="role">Candidate</span><span class="x">denied</span><span>Exam start refused; paper status is not READY.</span></li>
+      <li><span class="role">Assessment centre</span><span class="x">denied</span><span>Authorization endpoint returns unauthorized, with the reason.</span></li>
+      <li><span class="role">Candidate</span><span class="x">denied</span><span>Assessment start refused; paper status is not READY.</span></li>
       <li><span class="role">Us</span><span class="x">denied</span><span>Same code path. We built it and we can't open it either.</span></li>
     </ul>
   </div>
@@ -709,7 +710,7 @@ tr:last-child td{border-bottom:0}
 <section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">Walkthrough</p>
-    <h2>One exam, start to finish.</h2>
+    <h2>One assessment, start to finish.</h2>
     <p class="lead">A recruitment assessment for 40,000 candidates across 60 centres, on a Tuesday
       at 09:00. This is what actually happens, and — in the right-hand column — who is capable of
       reading the paper at each moment.</p>
@@ -766,7 +767,7 @@ tr:last-child td{border-bottom:0}
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-t"><span class="tl-when">09:00 – 12:00</span><h3>The exam</h3></div>
+        <div class="tl-t"><span class="tl-when">09:00 – 12:00</span><h3>The assessment window</h3></div>
         <p>40,000 candidates each receive the same 120 questions in an order derived from their own
           seed. Answers autosave encrypted. Invigilation daemons watch every session and escalate
           anomalies with evidence rather than verdicts.</p>
@@ -796,13 +797,13 @@ tr:last-child td{border-bottom:0}
 <section class="sec">
   <div class="wrap">
     <p class="eyebrow">Comparison</p>
-    <h2>Traditional online examination vs teaOS.</h2>
-    <p class="lead">Not a feature grid. These are the seven questions an examination controller
+    <h2>Traditional online assessment vs teaOS.</h2>
+    <p class="lead">Not a feature grid. These are the seven questions an assessment controller
       actually gets asked after something goes wrong, and what each architecture can answer.</p>
 
     <div class="vs">
       <div class="vs-row">
-        <div class="vs-k">Who can read the paper before the exam starts?</div>
+        <div class="vs-k">Who can read the paper before the assessment starts?</div>
         <div class="vs-a"><span class="vs-l">Traditional</span>Database administrators, vendor
           staff, the ops engineer with production access, anyone who can read a backup.</div>
         <div class="vs-b"><span class="vs-l">teaOS</span>Nobody. The key is sealed to a block height
@@ -857,8 +858,8 @@ tr:last-child td{border-bottom:0}
 <section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">System daemons</p>
-    <h2>AI agents that monitor the exam — and are monitored themselves.</h2>
-    <p class="lead">A 40,000-candidate exam produces more behavioural signal in three hours than a
+    <h2>AI agents that monitor the assessment — and are monitored themselves.</h2>
+    <p class="lead">A 40,000-candidate assessment produces more behavioural signal in three hours than a
       human team could review in a month. Automating that is obvious. What isn't obvious — and what
       every proctoring vendor quietly skips — is answering who audits the automation.</p>
     <p>Most AI proctoring is a black box that flags a candidate, produces a confidence score, and
@@ -911,7 +912,7 @@ tr:last-child td{border-bottom:0}
       <div class="dmn-item">
         <div class="dh"><span class="dn">daemon 04</span><h3>Blueprint co-pilot</h3></div>
         <p>Proposes paper shapes calibrated against historical performance, and predicts the score
-          distribution before the exam runs — so institutions design tests that actually
+          distribution before the assessment runs — so institutions design tests that actually
           discriminate, instead of ones that merely satisfy a policy document.</p>
         <dl class="sig">
           <div><dt>Watches</dt><dd>Historical cohort performance, difficulty balance, coverage</dd></div>
@@ -932,7 +933,7 @@ tr:last-child td{border-bottom:0}
       </div>
       <div class="dmn-item">
         <div class="dh"><span class="dn">daemon 06</span><h3>Identity continuity</h3></div>
-        <p>Confirms the person who started the exam is the person still sitting it, without storing
+        <p>Confirms the person who started the assessment is the person still sitting it, without storing
           biometric templates in a form that would be worth stealing.</p>
         <dl class="sig">
           <div><dt>Watches</dt><dd>Session-level identity continuity signals across the window</dd></div>
@@ -962,8 +963,8 @@ tr:last-child td{border-bottom:0}
         <span class="cd">The submission commitment matches what was anchored, byte for byte.</span></span></li>
       <li><span class="tick">03</span><span><span class="ct">Official result hash matches</span>
         <span class="cd">The published score re-derives to the hash anchored in ResultRegistry.</span></span></li>
-      <li><span class="tick">04</span><span><span class="ct">Note status is consistent</span>
-        <span class="cd">The submission note exists, and its nullifier shows exactly one consumption.</span></span></li>
+      <li><span class="tick">04</span><span><span class="ct">On-chain commitment is consistent</span>
+        <span class="cd">The registry contract itself is read directly — not our database — and its own write-once guard is what made a second submission impossible in the first place.</span></span></li>
       <li><span class="tick">05</span><span><span class="ct">Storage Merkle proof verifies</span>
         <span class="cd">The stored blob proves membership under the root that was anchored.</span></span></li>
       <li><span class="tick">06</span><span><span class="ct">Chain transaction is valid and final</span>
@@ -1026,7 +1027,7 @@ tr:last-child td{border-bottom:0}
     <p class="cap">Blockchain does one specific job here and we'd rather name it precisely than
       overclaim: it produces a record that exists outside the institution's reach and cannot be
       edited afterwards — by them, by us, or by anyone who compromises either of us. Nothing about
-      the exam's fairness depends on decentralization as an ideology.</p>
+      the assessment's fairness depends on decentralization as an ideology.</p>
   </div>
 </section>
 
@@ -1053,7 +1054,7 @@ tr:last-child td{border-bottom:0}
         <h3>The privileged exception</h3>
         <p>The usual way a system like this rots is an emergency override added under pressure —
           "just for the admin, just this once" — which then becomes the thing an attacker targets.</p>
-        <div class="fix"><b>Now</b>One code path gates exam start for every role. There is no branch
+        <div class="fix"><b>Now</b>One code path gates assessment start for every role. There is no branch
           on privilege, so there is nowhere to add an exception without removing the check entirely.</div>
       </div>
       <div class="fail-row">
@@ -1081,9 +1082,9 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Full system schematic</p>
     <h2>Every actor, every hop.</h2>
-    <p class="lead">The complete end-to-end flow across all five roles — author, institution, exam
+    <p class="lead">The complete end-to-end flow across all five roles — author, institution, assessment
       centre, candidate, and the public verification layer.</p>
-    <div class="schema"><img src="{{FLOW}}" alt="teaOS end-to-end architecture: author question submission through AI validation and encryption, institutional blueprint and paper assembly with timelock, exam centre authorization, candidate exam client and private submission, evaluation, ranking and public verification portal" /></div>
+    <div class="schema"><img src="{{FLOW}}" alt="teaOS end-to-end architecture: author question submission through AI validation and encryption, institutional blueprint and paper assembly with timelock, assessment centre authorization, candidate assessment client and private submission, evaluation, ranking and public verification portal" /></div>
     <p class="cap">Teal = storage and chain anchoring · Purple = enclave inference ·
       Coral = zero-knowledge layer · Gray = deterministic application logic</p>
   </div>
@@ -1114,9 +1115,9 @@ tr:last-child td{border-bottom:0}
           <h3>Universities &amp; colleges</h3>
         </div>
         <span class="vol">5K – 200K candidates / year</span>
-        <p>Entrance tests, semester examinations, online degree assessment, and remote programs
+        <p>Entrance tests, semester assessments, online degree evaluation, and remote programs
           across multiple campuses.</p>
-        <p class="pain">Internal leaks are common and rarely reported. Re-examinations are expensive,
+        <p class="pain">Internal leaks are common and rarely reported. Retakes are expensive,
           and accreditation bodies increasingly ask for an audit trail nobody can produce.</p>
       </div>
       <div class="seg">
@@ -1125,7 +1126,7 @@ tr:last-child td{border-bottom:0}
           <h3>Government &amp; public boards</h3>
         </div>
         <span class="vol">100K – 5M candidates / year</span>
-        <p>National and regional competitive examinations, civil service recruitment, public sector
+        <p>National and regional competitive assessments, civil service recruitment, public sector
           selection at population scale.</p>
         <p class="pain">A single leak means mass cancellation, litigation, and political
           consequence. This is where the cost of failure is highest and scrutiny is total.</p>
@@ -1165,20 +1166,26 @@ tr:last-child td{border-bottom:0}
           <tr><td>Kernel gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Timelock proof-of-concept</td><td>Self-issued faucet, mint, timelocked note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
           <tr><td>Timelock production path</td><td>Content key sealed to a future beacon round</td><td>drand mainnet · quicknet</td><td><span class="ok">live</span></td></tr>
-          <tr><td>Full exam lifecycle</td><td>Seal → gate refused → gate opens → start → submit → score → verify</td><td>0G mainnet + drand mainnet</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Full assessment lifecycle</td><td>Seal → gate refused → gate opens → start → submit → score → verify</td><td>0G mainnet + drand mainnet</td><td><span class="ok">verified</span></td></tr>
+          <tr><td>Submission commitment</td><td>Double-submission guard read directly from the deployed registry</td><td>0G mainnet</td><td><span class="ok">verified</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <p style="margin-top:1.5rem"><b>On those last two rows, plainly:</b> the timelock guarantee was
-      first proven on Miden's devnet, then the production backend was switched to drand/tlock — a
+    <p style="margin-top:1.5rem"><b>On those rows, plainly:</b> the timelock guarantee was first
+      proven on Miden's devnet, then the production backend was switched to drand/tlock — a
       threshold-signature network that has run in production for years — after Miden's public
       testnet spent two straight days rejecting the newest client its own team had shipped. Same
       guarantee, sturdier foundation, no separate process required this time: sealing and unsealing
       are now a direct library call in the application's own request path, not a second isolated
-      service. A full exam ran on it end to end — a paper reached the "ready to start" state for the
-      first time, a candidate session was correctly refused before the seal opened and correctly
-      admitted after, and the resulting score cleared independent re-verification against the chain.</p>
+      service. The submission side saw the same kind of swap: the registry contract's own write-once
+      guard turned out to already provide the exact guarantee a separate note-and-nullifier
+      mechanism was going to — so verification was pointed at the contract directly instead of
+      building a second system to prove what the first one already enforced. A full assessment ran
+      on both end to end — a paper reached the "ready to start" state for the first time, a candidate session
+      was correctly refused before the seal opened and correctly admitted after, and the result
+      cleared all six independent verification checks against source, with no exceptions, for the
+      first time.</p>
 
     <p class="eyebrow" style="margin-top:2.5rem">On-chain anchors — 0G mainnet</p>
     <div class="tbl-wrap">
@@ -1202,7 +1209,7 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Business model</p>
     <h2>We charge institutions. Candidates never pay.</h2>
-    <p class="lead">B2B SaaS sold to enterprises, universities, examination boards, and certification
+    <p class="lead">B2B SaaS sold to enterprises, universities, assessment boards, and certification
       bodies. Priced on candidate volume, because that's what the customer already budgets against.</p>
 
     <div class="grid three">
@@ -1216,13 +1223,13 @@ tr:last-child td{border-bottom:0}
       <div class="card">
         <div class="k">Line 2 · Volume</div>
         <h3>Per candidate, per cycle</h3>
-        <p>The compounding line. Charged on candidates who actually sit an exam, so it scales with
-          the customer instead of ahead of them.</p>
+        <p>The compounding line. Charged on candidates who actually sit an assessment, so it scales
+          with the customer instead of ahead of them.</p>
         <ul><li>$2.00 – $5.00 per candidate</li><li>Infrastructure cost ≈ $0.28</li></ul>
       </div>
       <div class="card">
         <div class="k">Line 3 · Centres</div>
-        <h3>Exam centre software</h3>
+        <h3>Assessment centre software</h3>
         <p>Per-centre licence for the gateway, machine health monitoring, and offline-tolerant
           delivery client.</p>
         <ul><li>$120 per centre / cycle</li><li>Optional hardware kit</li></ul>
@@ -1257,10 +1264,10 @@ tr:last-child td{border-bottom:0}
         <h3>Close the loop, get real users</h3>
         <ul>
           <li>Timelock migrated to drand/tlock — done</li>
-          <li>Submission commitment moved on-chain, dropping the last Miden dependency</li>
+          <li>Submission commitment moved on-chain, last Miden dependency dropped — done</li>
           <li>Public verification portal shipped</li>
           <li>2 design partners signed</li>
-          <li>First live pilot examination</li>
+          <li>First live pilot assessment</li>
         </ul>
         <div class="q-metric">
           <div><span class="mk">Candidates</span><span class="mv">5,000</span></div>
@@ -1275,7 +1282,7 @@ tr:last-child td{border-bottom:0}
           <li>First paid contract closed</li>
           <li>SOC 2 readiness + data residency</li>
           <li>Invigilation daemon in beta</li>
-          <li>Exam centre client hardened</li>
+          <li>Assessment centre client hardened</li>
         </ul>
         <div class="q-metric">
           <div><span class="mk">Candidates</span><span class="mv">50,000</span></div>
@@ -1336,8 +1343,8 @@ tr:last-child td{border-bottom:0}
           </div>
           <blockquote class="say">I've spent six years building on-chain systems, and most of that
             time I've been telling people their idea doesn't need a blockchain. This one does, and
-            I can point at exactly which part. Not the exam. Not the results. One moment: when a
-            paper becomes readable. Everything on either side of that is ordinary engineering.</blockquote>
+            I can point at exactly which part. Not the assessment. Not the results. One moment: when
+            a paper becomes readable. Everything on either side of that is ordinary engineering.</blockquote>
           <p>Six years across major chains and four in decentralized AI infrastructure is mostly an
             education in which guarantees are real and which are marketing. That's the judgement
             teaOS needed — the discipline to use cryptography for exactly one thing that genuinely
@@ -1381,11 +1388,11 @@ tr:last-child td{border-bottom:0}
   <div class="wrap">
     <p class="eyebrow">Where this goes</p>
     <h2>Integrity shouldn't require trust.</h2>
-    <p class="lead">Every year, hundreds of millions of people sit an exam that decides what the
-      rest of their life looks like — and are asked to believe, on faith, that nobody opened the
+    <p class="lead">Every year, hundreds of millions of people sit an assessment that decides what
+      the rest of their life looks like — and are asked to believe, on faith, that nobody opened the
       paper early. When that faith breaks, it doesn't just cost a result. It costs a year, a rank,
       a job, sometimes a career.</p>
-    <p class="lead">Examinations are one of the last consequential systems still running without a
+    <p class="lead">Assessment is one of the last consequential systems still running without a
       foundation underneath them. teaOS is that foundation: a kernel where the guarantee is
       enforced by mathematics that answers to no one, and where any candidate, on any phone, can
       check it for themselves in ten seconds.</p>
@@ -1397,7 +1404,7 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="foot">
       <img src="{{HEX}}" alt="" />
-      <span class="fm">teaOS — Trusted Examination Architecture · built by HorizonX Labs</span>
+      <span class="fm">teaOS — Trusted Evaluation Architecture · built by HorizonX Labs</span>
     </div>
   </div>
 </section>
@@ -1415,7 +1422,7 @@ tr:last-child td{border-bottom:0}
     gateDone = true;
     setTimeout(function(){
       gate.classList.add('open');
-      if (state) state.textContent = 'Released · exam start reached';
+      if (state) state.textContent = 'Released · assessment start reached';
     }, 2200);
   }
   function fillBars(){
