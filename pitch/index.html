@@ -477,7 +477,7 @@ tr:last-child td{border-bottom:0}
         <p>The kernel talks to decentralized infrastructure through narrow interfaces. Backends are
           implementation detail — the guarantee is defined by the kernel contract, not the vendor.</p>
         <div class="items">
-          <span>0G Compute</span><span>0G Storage</span><span>0G Chain</span><span>Miden</span>
+          <span>0G Compute</span><span>0G Storage</span><span>0G Chain</span><span>drand / tlock</span>
         </div>
       </div>
     </div>
@@ -577,14 +577,16 @@ tr:last-child td{border-bottom:0}
       </div>
       <div class="svc-item">
         <div class="st">Service 03</div>
-        <h3>Miden bridge</h3>
-        <div class="lang">Rust · Axum · miden-client</div>
-        <p>A separate process out of necessity rather than taste. Miden proves transactions
-          client-side and ships no Node SDK, so the real Rust client runs here on a dedicated thread
-          with its own runtime, reached only through an internal channel.</p>
+        <h3>Timelock service</h3>
+        <div class="lang">Rust · drand / tlock</div>
+        <p>A separate process by design, isolated behind the kernel's <span class="mono">seal</span>
+          primitive so the decentralized network underneath it is swappable without touching
+          anything above. Proved first against Miden's protocol — a real transaction executed
+          end-to-end on its devnet — production is moving to drand/tlock's mature threshold network
+          rather than a pre-1.0 client whose public testnet has an open rollout gap.</p>
         <ul class="can">
-          <li><span class="y">can</span><span>Seal keys, submit and consume transactions</span></li>
-          <li><span class="n">cannot</span><span>Release a sealed key before its block height</span></li>
+          <li><span class="y">can</span><span>Seal keys, release them at a target round</span></li>
+          <li><span class="n">cannot</span><span>Release a sealed key before its target round</span></li>
         </ul>
       </div>
       <div class="svc-item">
@@ -600,11 +602,11 @@ tr:last-child td{border-bottom:0}
         </ul>
       </div>
     </div>
-    <p class="cap">The bridge running on its own thread is forced by the platform, not chosen:
-      Miden's client type isn't thread-safe across an async server — its transaction prover loses
-      its <span class="mono">Send</span> bound at an API boundary — so it cannot be shared across
-      request threads. Isolating it as an actor happens to mirror Miden's own model, where one
-      account processes one state transition at a time.</p>
+    <p class="cap">Isolating the timelock service on its own thread wasn't a stylistic choice —
+      it's what the first working implementation, against Miden's client, required: its transaction
+      prover loses its <span class="mono">Send</span> bound at an API boundary, so it can't be
+      shared across an async server's request threads. That isolation pattern carries forward
+      regardless of which network sits behind the <span class="mono">seal</span> primitive.</p>
   </div>
 </section>
 
@@ -661,18 +663,18 @@ tr:last-child td{border-bottom:0}
       job — anyone with write access can move the date and nobody outside would know. The release
       condition needed to live somewhere no operator could reach.</p>
 
-    <p>The paper's content key is wrapped into a Miden <span class="mono">P2IDE</span> note carrying
-      two block heights: <span class="mono">timelock_height</span>, before which the note cannot be
-      consumed at all, and <span class="mono">reclaim_height</span>, after which the sender can take
-      it back once the window has closed. Both are enforced by the note's script executing inside
-      the VM as a condition of transaction validity — not by a permission check in our code that a
-      privileged user could route around.</p>
+    <p>The paper's content key is encrypted against a specific point in a public, ongoing schedule
+      run by a decentralized network — nobody can produce the material needed to decrypt it before
+      that point arrives, because doing so requires a threshold of independent parties to
+      cooperate, not one operator's permission. Reaching the target point is what releases the key;
+      nothing in our stack decides to release it.</p>
 
-    <p>One detail worth stating plainly, since it's the kind of thing a technical reader will
-      probe: a P2IDE note must carry at least one asset. We issue a private token for this. It is
-      not a currency, has no market, and never leaves our accounts — its only job is to be the
-      thing whose transfer the timelock governs. The exam key is <em>not</em> inside that asset and
-      could not be, since only a hash of asset data reaches the chain.</p>
+    <p>We proved this end to end against Miden's protocol first — sealing the key into a timelocked
+      note whose script refuses release until a target block height, verified with a real
+      transaction executing on Miden's devnet. Production is migrating to <b>drand/tlock</b>: the
+      same guarantee, built on a threshold-signature network that has run in production for years
+      rather than a pre-1.0 client. The mechanism changes; the guarantee — release enforced by a
+      decentralized network, with no admin override anywhere in the path — does not.</p>
 
     <div class="gate" id="gate">
       <div class="halves">
@@ -685,8 +687,8 @@ tr:last-child td{border-bottom:0}
         <div class="half">
           <div class="who">Half two</div>
           <h3>The key, timelocked</h3>
-          <p>Sealed in a note whose script refuses to release it before the exam-start block. Not a
-            permission check. A protocol rule.</p>
+          <p>Sealed to a target point in a decentralized network's public schedule, which refuses
+            to release it early. Not a permission check. A protocol rule.</p>
         </div>
       </div>
       <div class="lockrow">
@@ -697,8 +699,8 @@ tr:last-child td{border-bottom:0}
             <circle class="lockdot" cx="23" cy="34" r="3.2"/>
           </svg>
         </div>
-        <div class="lockstate" id="lockstate">Sealed · block height not reached</div>
-        <div class="lockmeta">timelock_height = exam start &nbsp;·&nbsp; reclaim_height = window close</div>
+        <div class="lockstate" id="lockstate">Sealed · release point not reached</div>
+        <div class="lockmeta">release target = exam start &nbsp;·&nbsp; window close = candidates locked out</div>
       </div>
       <div class="gate-out">encrypted paper + released key = readable, and only now</div>
     </div>
@@ -997,10 +999,10 @@ tr:last-child td{border-bottom:0}
         <div>
           <div class="need">A release condition no operator can override</div>
           <p class="why">Everything else is downstream of this. If any human can move the release
-            time, the whole guarantee collapses. It had to be enforced during transaction
-            validation, not by application logic.</p>
+            time, the whole guarantee collapses. It had to be enforced by a decentralized network,
+            not by application logic.</p>
         </div>
-        <div class="pick">Miden P2IDE notes<br />timelock enforced in-VM</div>
+        <div class="pick">drand / tlock<br />threshold-network timelock encryption</div>
       </div>
       <div class="req-row">
         <div>
@@ -1171,17 +1173,17 @@ tr:last-child td{border-bottom:0}
           <tr><td>Question pipeline</td><td>Enclave validation → encrypt → store → anchor</td><td>0G Compute + Storage + Chain</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Paper assembly</td><td>Select → assemble → re-encrypt → anchor</td><td>0G mainnet</td><td><span class="ok">verified</span></td></tr>
           <tr><td>Kernel gate</td><td>Admin / centre / candidate all refused pre-timelock</td><td>Full stack</td><td><span class="ok">verified</span></td></tr>
-          <tr><td>Timelock</td><td>Self-issued faucet, mint, P2IDE note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
-          <tr><td>Miden testnet</td><td>Same code, blocked on node version rollout</td><td>Miden testnet</td><td><span class="pend">waiting</span></td></tr>
+          <tr><td>Timelock proof-of-concept</td><td>Self-issued faucet, mint, timelocked note submit</td><td>Miden devnet</td><td><span class="ok">executed</span></td></tr>
+          <tr><td>Timelock production path</td><td>Migrating to drand/tlock's threshold network</td><td>drand mainnet beacon</td><td><span class="pend">in progress</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <p style="margin-top:1.5rem"><b>On that last row, plainly:</b> the Miden integration is complete
-      and proven — it executed a real transaction on Miden's devnet. Their public testnet currently
-      rejects the newest published client SDK, which is the only version exposing the APIs the
-      design needs. That's an upstream rollout gap on Miden's side, not a gap in our code, and it
-      clears the moment their nodes catch up.</p>
+    <p style="margin-top:1.5rem"><b>On that last row, plainly:</b> the timelock guarantee is proven —
+      a real transaction executed end to end on Miden's devnet. We're migrating the production
+      backend to drand/tlock, a threshold-signature network that has run in production for years,
+      rather than depending further on a pre-1.0 client whose public testnet has an open
+      compatibility gap with its own newest SDK release. Same guarantee, sturdier foundation.</p>
 
     <p class="eyebrow" style="margin-top:2.5rem">On-chain anchors — 0G mainnet</p>
     <div class="tbl-wrap">
@@ -1259,7 +1261,7 @@ tr:last-child td{border-bottom:0}
         <div class="qh"><span class="qn">Q1</span><span class="qd">Jul–Sep 2026</span></div>
         <h3>Close the loop, get real users</h3>
         <ul>
-          <li>Miden testnet integration complete</li>
+          <li>Timelock migrated to drand/tlock</li>
           <li>Public verification portal shipped</li>
           <li>2 design partners signed</li>
           <li>First live pilot examination</li>
