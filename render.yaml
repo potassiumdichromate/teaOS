@@ -11,7 +11,11 @@
 #
 # Schema reference: https://render.com/docs/blueprint-spec — cross-check
 # plan names and key spellings there if Render's schema has moved since
-# this was written (2026-07-29).
+# this was written (2026-07-29). That doc page is not exhaustive, confirmed
+# the hard way: it omits that `fromService` requires an explicit `type`
+# (Render's real validator rejected `envVars[3].fromService.type: empty but
+# required` on the first deploy attempt) — fixed below, but treat the docs
+# as a starting point, not ground truth, if you're extending this file.
 
 services:
   - name: teaos-api
