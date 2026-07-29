@@ -29,7 +29,15 @@ services:
     # CLI, both devDependencies at the workspace root. Render doesn't prune
     # node_modules between build and start, so what's installed here is what
     # `npx prisma` finds at start time too.
-    buildCommand: npm install --include=dev && npm run build -w packages/shared && npm run build -w apps/api
+    #
+    # `prisma:generate` here is required, not optional: `tsc` needs the
+    # generated `@prisma/client` types to match the current schema, and
+    # neither `npm install` nor `migrate deploy` (in startCommand) run
+    # `prisma generate` on their own. Without this, a build can succeed
+    # against a stale cached client from a previous schema — which is
+    # exactly what broke the first real Render build after a schema rename
+    # (`AIRRanking` -> `RankingEntry`, found live: 2026-07-29).
+    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build -w packages/shared && npm run build -w apps/api
     # `prisma db seed` here is a deliberate exception to "never seed
     # production" — this app has no self-registration flow, so without it
     # the deployed database has real, correctly-migrated tables and zero
