@@ -1073,6 +1073,11 @@ tr:last-child td{border-bottom:0}
       overclaim: it produces a record that exists outside the institution's reach and cannot be
       edited afterwards — by them, by us, or by anyone who compromises either of us. Nothing about
       the assessment's fairness depends on decentralization as an ideology.</p>
+    <p class="cap">A side effect of building it this way: teaOS is, to our knowledge, one of the
+      only live mainnet workloads that exercises all three 0G primitives — Compute, Storage, and
+      Chain — inside a single production pipeline, rather than a demo of one at a time. If the case
+      for a chain, storage, and compute layer is that they compose into something an institution can
+      actually run, this is that composition, carrying real assessments today.</p>
   </div>
 </section>
 
@@ -1206,6 +1211,51 @@ tr:last-child td{border-bottom:0}
   </div>
 </section>
 
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Procurement &amp; compliance</p>
+    <h2>Built for how institutions actually buy, not just how engineers ship.</h2>
+    <p class="lead">Enterprise security review and government procurement don't evaluate a product
+      on its feature list — they evaluate exposure. Every architectural choice earlier in this
+      document maps directly onto a question a procurement officer will actually ask.</p>
+
+    <div class="grid four">
+      <div class="card">
+        <div class="k">Data residency</div>
+        <h3>Not a hard-coded dependency</h3>
+        <p>The kernel talks to storage and compute through narrow adapters, not fixed vendor calls.
+          A deployment that must keep data in a specific region or on a specific backend swaps the
+          adapter — the kernel contract and every guarantee above it stay identical.</p>
+      </div>
+      <div class="card">
+        <div class="k">Audit ownership</div>
+        <h3>Nobody has to take our word for it</h3>
+        <p>The audit trail lives on a public chain outside both the institution's control and ours.
+          An auditor general, a court, or an opposition party can verify a result independently,
+          without asking either of us for cooperation or access.</p>
+      </div>
+      <div class="card">
+        <div class="k">Vendor lock-in</div>
+        <h3>Proven swappable, not just designed to be</h3>
+        <p>Every guarantee is defined at the kernel interface, not by any single backend. We've
+          already migrated the entire timelock layer once — from Miden to drand/tlock — without
+          changing the interface a single caller depends on.</p>
+      </div>
+      <div class="card">
+        <div class="k">Compliance runway</div>
+        <h3>In progress, stated honestly</h3>
+        <p>SOC 2 Type II readiness and formal data-residency attestation are active workstreams on
+          the roadmap below, not a retroactive claim. Any procurement team is welcome to see exactly
+          where that work stands today.</p>
+      </div>
+    </div>
+    <p class="cap">None of this substitutes for your own security review. It's designed so that
+      review has something real to examine — a kernel contract, a chain anyone can query, and an
+      adapter boundary that turns "what happens if this vendor disappears" into a one-line answer
+      instead of a rewrite.</p>
+  </div>
+</section>
+
 <section class="sec alt">
   <div class="wrap">
     <p class="eyebrow">Evidence</p>
@@ -1314,8 +1364,16 @@ tr:last-child td{border-bottom:0}
         </tbody>
       </table>
     </div>
-    <p class="cap">$28B global assessment market · $4.2B in high-stakes secure delivery
-      specifically. Capturing 0.3% of that serviceable slice is a $12M revenue line.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="n">$28B</div><div class="k">TAM — global assessment &amp; testing market</div></div>
+      <div class="stat"><div class="n">$4.2B</div><div class="k">SAM — high-stakes secure delivery specifically</div></div>
+      <div class="stat"><div class="n">$12M</div><div class="k">SOM — 0.3% capture of the SAM, illustrative near-term target</div></div>
+      <div class="stat"><div class="n">$620K</div><div class="k">Q4 ARR on the roadmap below — the first real data point against that target</div></div>
+    </div>
+    <p class="cap">SAM is sized down from the broader TAM to the segments that actually require
+      secure delivery — enterprise hiring, higher education, government recruitment, and
+      certification — rather than every dollar spent on assessment software generally. The Q4
+      figure exists to keep the SOM honest: it's a roadmap commitment, not a market-sizing exercise.</p>
   </div>
 </section>
 
@@ -1386,6 +1444,105 @@ tr:last-child td{border-bottom:0}
         <div class="bar" style="--fill:100%"><i></i></div>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <p class="eyebrow">Risks</p>
+    <h2>The objections we'd raise ourselves.</h2>
+    <p class="lead">Every infrastructure pitch has a version of this section that lists risks
+      nobody is actually worried about. These are the four that have come up, unprompted, in real
+      diligence conversations.</p>
+
+    <div class="vs">
+      <div class="vs-row">
+        <div class="vs-k">Enterprise and government sales cycles are long.</div>
+        <div class="vs-a"><span class="vs-l">Risk</span>Procurement in this market can run six to
+          eighteen months, and an infrastructure startup can starve waiting on a single large logo.</div>
+        <div class="vs-b"><span class="vs-l">Sequencing</span>We're deliberately starting with
+          enterprise recruitment and private universities — shorter cycles, real budgets — and only
+          approaching public boards once paying references exist to point to.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">The kernel depends on infrastructure teaOS doesn't operate.</div>
+        <div class="vs-a"><span class="vs-l">Risk</span>If 0G or drand changed terms or degraded, a
+          naively wired integration would be stuck with no way out.</div>
+        <div class="vs-b"><span class="vs-l">Precedent</span>We've already swapped the entire
+          timelock backend once, from Miden to drand/tlock, without changing the interface a single
+          caller depends on. The adapter boundary was tested by an actual migration, not a diagram.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">A well-resourced incumbent could attempt something similar.</div>
+        <div class="vs-a"><span class="vs-l">Risk</span>Cloud vendors and large assessment platforms
+          have the capital to fund a competing stack.</div>
+        <div class="vs-b"><span class="vs-l">Reality</span>It requires depth in confidential
+          computing, threshold cryptography, and AI orchestration at the same time, and a willingness
+          to give up the operator override most incumbents' support models are built around. That's
+          a harder trade than a harder feature to ship.</div>
+      </div>
+      <div class="vs-row">
+        <div class="vs-k">Blockchain-adjacent infrastructure invites reflexive skepticism from
+          public-sector buyers.</div>
+        <div class="vs-a"><span class="vs-l">Risk</span>"Why does this need a blockchain" is a fair
+          and common first question in government procurement.</div>
+        <div class="vs-b"><span class="vs-l">Answer</span>It does exactly one job: producing a
+          record neither the institution nor we can rewrite afterward. We lead with that plainly
+          rather than with the technology, because the guarantee has to survive someone who doesn't
+          care what's underneath it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="ask">
+  <div class="wrap">
+    <p class="eyebrow">The ask <span class="pend">draft — confirm figures before sending</span></p>
+    <h2>[$1.5M] to take a working kernel through Series A.</h2>
+    <p class="lead">The roadmap on the previous page is costed, not aspirational. This is what
+      funds it. Figures in brackets are placeholders for final terms, not commitments yet — replace
+      them before this goes to anyone.</p>
+
+    <div class="stat-row">
+      <div class="stat"><div class="n">[$1.5M]</div><div class="k">Round size</div></div>
+      <div class="stat"><div class="n">[Seed]</div><div class="k">Round type / instrument</div></div>
+      <div class="stat"><div class="n">[18 mo]</div><div class="k">Runway, to the Series A conversations already flagged for Q4</div></div>
+      <div class="stat"><div class="n">4</div><div class="k">Quarters of roadmap this funds, in full</div></div>
+    </div>
+
+    <div class="grid four">
+      <div class="card">
+        <div class="k">[~45%]</div>
+        <h3>Engineering &amp; security</h3>
+        <p>Hardening the kernel, closing the remaining daemon suite, and funding the third-party
+          security audit already scheduled on the Q3 roadmap.</p>
+      </div>
+      <div class="card">
+        <div class="k">[~30%]</div>
+        <h3>Go-to-market</h3>
+        <p>Enterprise and university sales hires, and the pilot and design-partner work needed to
+          convert the Q1–Q2 milestones into signed, renewing contracts.</p>
+      </div>
+      <div class="card">
+        <div class="k">[~15%]</div>
+        <h3>Compliance &amp; certification</h3>
+        <p>SOC 2 Type II, data-residency attestation, and the procurement documentation enterprise
+          and government buyers require before a contract — not after one.</p>
+      </div>
+      <div class="card">
+        <div class="k">[~10%]</div>
+        <h3>Runway &amp; operations</h3>
+        <p>Buffer so the roadmap's pace is a choice we make, not one forced on us by the calendar.</p>
+      </div>
+    </div>
+
+    <div class="pull">The four quarters shown earlier assume this raise closes on schedule. Delay
+      the raise and the milestones slide with it — they don't disappear, but the Series A
+      conversation in Q4 does.</div>
+    <p class="cap">For grant reviewers specifically: a milestone-based grant funds the identical
+      roadmap, and a meaningful share of it — the kernel's adapter layer and the public verification
+      portal — ships as reusable public infrastructure the wider 0G ecosystem can build on, not as a
+      feature only teaOS benefits from.</p>
   </div>
 </section>
 
@@ -1466,6 +1623,7 @@ tr:last-child td{border-bottom:0}
     <div class="cta">
       <a class="pri" href="mailto:teaos@hoxlabs.xyz">teaos@hoxlabs.xyz</a>
       <a href="mailto:teaos@hoxlabs.xyz?subject=teaOS%20pilot%20enquiry">Request a pilot</a>
+      <a href="#ask">View the ask</a>
     </div>
     <div class="foot">
       <img src="{{HEX}}" alt="" />
