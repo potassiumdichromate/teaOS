@@ -17,7 +17,7 @@ export const PIPELINE = [
   { title: "Encrypt & anchor hash", detail: "0G Storage blob, 0G Chain tx", real: true },
   { title: "Master paper generation", detail: "Blueprint-driven selection, app layer", real: true },
   { title: "Paper release & candidate submission", detail: "drand/tlock key release, on-chain commitment", real: true },
-  { title: "Evaluation, AIR & verification", detail: "Results hashed, anchored on-chain", real: true },
+  { title: "Evaluation, ranking & verification", detail: "Results hashed, anchored on-chain", real: true },
 ];
 
 export const TECH = [

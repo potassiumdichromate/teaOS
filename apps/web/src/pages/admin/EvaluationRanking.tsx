@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/ui/page-header.js";
 import { HashValue } from "@/components/ui/mono.js";
 import { DataTable, type Column } from "@/components/ui/table.js";
 
-interface AIRRow {
+interface RankingRow {
   rank: number;
   percentile: number;
   resultListHash: string;
@@ -21,7 +21,7 @@ interface AIRRow {
   };
 }
 
-const COLUMNS: Column<AIRRow>[] = [
+const COLUMNS: Column<RankingRow>[] = [
   {
     key: "rank",
     header: "Rank",
@@ -76,12 +76,12 @@ const COLUMNS: Column<AIRRow>[] = [
   },
 ];
 
-export default function EvaluationAIR() {
+export default function EvaluationRanking() {
   const [paperId, setPaperId] = useState("");
   const [tieBreakRule, setTieBreakRule] = useState("earlier submission wins");
   const [status, setStatus] = useState<string | null>(null);
   const [statusTone, setStatusTone] = useState<"info" | "danger">("info");
-  const [rows, setRows] = useState<AIRRow[] | null>(null);
+  const [rows, setRows] = useState<RankingRow[] | null>(null);
   const [busy, setBusy] = useState(false);
 
   function report(message: string, tone: "info" | "danger" = "info") {
@@ -107,16 +107,16 @@ export default function EvaluationAIR() {
     }
   }
 
-  async function onPublishAIR() {
+  async function onPublishRanking() {
     setStatus(null);
     setBusy(true);
     try {
-      const result = await api<{ count: number; resultListHash: string }>("/admin/air/publish", {
+      const result = await api<{ count: number; resultListHash: string }>("/admin/ranking/publish", {
         method: "POST",
         body: JSON.stringify({ paperId, tieBreakRule }),
       });
-      report(`Published the All India Rank list for ${result.count} candidates.`);
-      await onLoadAIR();
+      report(`Published the final ranking for ${result.count} candidates.`);
+      await onLoadRanking();
     } catch (err) {
       report(err instanceof ApiError ? err.message : String(err), "danger");
     } finally {
@@ -124,9 +124,9 @@ export default function EvaluationAIR() {
     }
   }
 
-  async function onLoadAIR() {
+  async function onLoadRanking() {
     try {
-      setRows(await api<AIRRow[]>(`/admin/air/${paperId}`));
+      setRows(await api<RankingRow[]>(`/admin/ranking/${paperId}`));
     } catch (err) {
       report(err instanceof ApiError ? err.message : String(err), "danger");
     }
@@ -137,7 +137,7 @@ export default function EvaluationAIR() {
   return (
     <>
       <PageHeader
-        title="Evaluation & AIR"
+        title="Evaluation & Ranking"
         description="Encrypted answer sets → the official key, released only once the timelock allows → scoring → ranking → an anchored result list a candidate can verify for themselves."
       />
 
@@ -169,17 +169,17 @@ export default function EvaluationAIR() {
                   className="w-full"
                   variant="secondary"
                   disabled={!paperId || busy}
-                  onClick={onPublishAIR}
+                  onClick={onPublishRanking}
                 >
-                  Publish AIR
+                  Publish ranking
                 </Button>
                 <Button
                   className="w-full"
                   variant="outline"
                   disabled={!paperId || busy}
-                  onClick={onLoadAIR}
+                  onClick={onLoadRanking}
                 >
-                  Load AIR table
+                  Load ranking table
                 </Button>
               </div>
             </div>
@@ -210,14 +210,14 @@ export default function EvaluationAIR() {
               ) : undefined
             }
           >
-            <CardTitle>All India Rank</CardTitle>
+            <CardTitle>Final Ranking</CardTitle>
             <CardDescription>Rank, percentile and the marks breakdown behind it.</CardDescription>
           </CardHeader>
           <div className="mt-4">
             {rows === null ? (
               <div className="px-5 pb-6">
                 <p className="text-sm text-muted-foreground">
-                  Enter a paper ID and load its rank list.
+                  Enter a paper ID and load its ranking.
                 </p>
               </div>
             ) : (
@@ -226,8 +226,8 @@ export default function EvaluationAIR() {
                 rows={rows}
                 rowKey={(r) => String(r.rank)}
                 emptyIcon={<Trophy className="h-4 w-4" />}
-                emptyTitle="No AIR published for this paper yet"
-                emptyDescription="Run the evaluation first, then publish the rank list."
+                emptyTitle="No ranking published for this paper yet"
+                emptyDescription="Run the evaluation first, then publish the ranking."
               />
             )}
           </div>

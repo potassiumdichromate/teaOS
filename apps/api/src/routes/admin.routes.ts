@@ -7,7 +7,7 @@ import { subjectRepository } from "../repositories/subject.repository.js";
 import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { evaluationQueue } from "../workers/queues.js";
 import { evaluationResultRepository } from "../repositories/evaluationResult.repository.js";
-import * as airService from "../services/air.service.js";
+import * as rankingService from "../services/ranking.service.js";
 
 export const adminRoutes = Router();
 adminRoutes.use(requireAuth, requireRole("ADMIN"));
@@ -163,19 +163,19 @@ adminRoutes.get("/evaluation/:sessionId/pipeline", async (req, res, next) => {
   }
 });
 
-adminRoutes.post("/air/publish", async (req, res, next) => {
+adminRoutes.post("/ranking/publish", async (req, res, next) => {
   try {
     const { paperId, tieBreakRule } = req.body as { paperId?: string; tieBreakRule?: string };
     if (!paperId) return res.status(400).json({ error: "paperId is required" });
-    res.status(201).json(await airService.publishAIR(paperId, tieBreakRule ?? "earlier submission wins"));
+    res.status(201).json(await rankingService.publishRanking(paperId, tieBreakRule ?? "earlier submission wins"));
   } catch (err) {
     next(err);
   }
 });
 
-adminRoutes.get("/air/:paperId", async (req, res, next) => {
+adminRoutes.get("/ranking/:paperId", async (req, res, next) => {
   try {
-    res.json(await airService.getAIR(req.params.paperId));
+    res.json(await rankingService.getRanking(req.params.paperId));
   } catch (err) {
     next(err);
   }

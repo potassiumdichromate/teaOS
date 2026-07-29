@@ -354,12 +354,16 @@ model EvaluationResult {
   chainTxHash      String?  // 0G Chain ResultRegistry anchor tx
   midenProofRef    String?  // Miden testnet proof reference for the evaluation account transition
 
-  airRanking       AIRRanking?
+  ranking          RankingEntry?
 
   evaluatedAt      DateTime @default(now())
 }
 
-model AIRRanking {
+// Was `AIRRanking` ("All India Rank") through 2026-07-29 — renamed for a
+// globally-targeted product, not just India-facing (knowledge_base.md
+// §11z-iii). Same real data, same guarantees; see the migration that
+// renamed the underlying table in place rather than dropping and recreating it.
+model RankingEntry {
   id           String   @id @default(cuid())
   resultId     String   @unique
   result       EvaluationResult @relation(fields: [resultId], references: [id])
@@ -388,7 +392,7 @@ enum AuditAction {
   STUDENT_LOGIN
   ANSWER_SUBMISSION
   EVALUATION
-  AIR_PUBLICATION
+  RANKING_PUBLICATION
   VERIFICATION_CHECK
   OBSERVER_LOGIN
 }

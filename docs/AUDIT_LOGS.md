@@ -16,7 +16,7 @@ What gets logged, why, who can read it, and how the log itself is protected from
 | `PAPER_GENERATION` | Paper generation pipeline | paperId, stage |
 | `ANSWER_SUBMISSION` | Student exam submit | sessionId, chainTxHash |
 | `EVALUATION` | Evaluation Engine | sessionId, rawScore, txHash |
-| `AIR_PUBLICATION` | AIR ranking publish | paperId, resultListHash |
+| `RANKING_PUBLICATION` | Final ranking publish (was `AIR_PUBLICATION` through 2026-07-29) | paperId, resultListHash |
 | `VERIFICATION_CHECK` | Every `/verify` call, including anonymous ones | applicationId, result (never the raw DOB) |
 
 `OBSERVER_LOGIN` was added 2026-07-28 alongside the Observer role itself — see docs/API_REFERENCE.md.

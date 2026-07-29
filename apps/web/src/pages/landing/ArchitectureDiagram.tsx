@@ -43,7 +43,7 @@ export default function ArchitectureDiagram() {
       node("tlock", "drand / tlock", "Key timelock, real mainnet", 520, 140, COLORS.tlock),
       node("center", "Exam center", "Authorization gate", 260, 140, COLORS.app),
       node("student", "Student client", "Randomized delivery + submit", 0, 140, COLORS.app),
-      node("eval", "Evaluation + AIR", "Score, rank, anchor result", 0, 280, COLORS.storageChain),
+      node("eval", "Evaluation + Ranking", "Score, rank, anchor result", 0, 280, COLORS.storageChain),
       node("verify", "Public verification", "Independent re-derivation", 260, 280, COLORS.app),
     ],
     [],

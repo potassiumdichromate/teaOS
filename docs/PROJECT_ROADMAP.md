@@ -7,7 +7,7 @@ Companion to [knowledge_base.md](../knowledge_base.md) §12 (Pending Tasks) and 
 - Full pipeline, real infra, mainnet: question submission → hardware-attested AI validation (0G Compute, `private` trust mode) → encryption → 0G Storage → 0G Chain anchor. Independently re-verified via raw RPC (knowledge_base.md §11k).
 - Paper Generation, real end to end including the timelock step: blueprint → selection → master paper assembly → drand/tlock seal → `READY` (§11p).
 - Examination Center + Student Exam Client, real, gated on the real timelock (§11e, §11m, §11p).
-- Evaluation Engine + AIR Ranking, real scoring against a real unsealed official key (§11f, §11p).
+- Evaluation Engine + Ranking (renamed from "AIR"/"All India Rank" 2026-07-29 for a globally-targeted product, see knowledge_base.md §11z-iii), real scoring against a real unsealed official key (§11f, §11p).
 - Student Verification, public, all six independent checks passing for the first time 2026-07-28 (§11g, §11q).
 - NTA Admin Overview dashboard, real aggregations and live health checks (§11h).
 - Explainer/landing site (§11i) and the investor one-pager (`pitch/`, deployed to Vercel).
@@ -23,7 +23,7 @@ Companion to [knowledge_base.md](../knowledge_base.md) §12 (Pending Tasks) and 
 - **Frontend redesign of the authenticated app** (knowledge_base.md §11s):
   - Shared component system in `apps/web/src/components/ui/`, applied consistently across Login and all five portals (Teacher, Admin, Center, Observer, Student) — the Observer dashboard got its first design pass, the Student exam client kept every CBT mechanic and gained its own distraction-free chrome.
   - Tailwind theme moved from glassmorphism to a flat, dark-only enterprise system; token names preserved so the landing page's styling wasn't orphaned.
-  - Remaining stale Miden copy in the app's own screens (Center, Student, Evaluation & AIR, Admin overview) corrected to drand/tlock and `SubmissionRegistry`'s write-once guard — the earlier sweep had covered only the backend and docs.
+  - Remaining stale Miden copy in the app's own screens (Center, Student, Evaluation & Ranking, Admin overview) corrected to drand/tlock and `SubmissionRegistry`'s write-once guard — the earlier sweep had covered only the backend and docs.
   - Verified live in a real browser (headless Chrome over CDP, `apps/web/scripts/ui-smoke.mjs`): all five demo roles, real mainnet data, the Admin WebSocket audit-log stream, and the Student exam client in its genuine in-progress state.
 
 ## Open — real, prioritized

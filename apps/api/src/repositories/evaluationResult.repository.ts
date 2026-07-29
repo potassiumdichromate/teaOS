@@ -15,7 +15,7 @@ export const evaluationResultRepository = {
   listForPaper: (paperId: string) =>
     prisma.evaluationResult.findMany({
       where: { session: { paperId } },
-      include: { session: true, student: true, airRanking: true },
+      include: { session: true, student: true, ranking: true },
     }),
 
   findByPaperAndSession: (sessionId: string) =>

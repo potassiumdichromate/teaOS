@@ -15,7 +15,7 @@ Schema source of truth: [`prisma/schema.prisma`](../prisma/schema.prisma). This 
 - **Identity**: `User` (+ role-specific profile tables `TeacherProfile`/`AdminProfile`/`CenterProfile`/`StudentProfile`/`ObserverProfile`) — one `User` row per login identity, optionally linked to an `evmAddress` and/or `midenAccountId` for the flows that need a wallet-bound identity. `ObserverProfile` (added 2026-07-28) is a strictly read-only third-party auditor/reviewer account — see `routes/observer.routes.ts`, never wired to any mutating endpoint.
 - **Question bank**: `Subject` → `Chapter` → `Question` (1:1 `AIValidationReport`).
 - **Blueprint/paper**: `Blueprint` (+ `BlueprintSubjectAllocation`/`BlueprintChapterAllocation` for the %-based composition rules) → `Paper` (+ `PaperQuestion` join, `CenterProfile`/`ExamPC` for center-side operational data). The original Phase 1 design also had a separate `ExamSchedule`/`Center` pair — dropped 2026-07-28, never populated by any service once `CenterProfile` and `Paper.examStartAt`/`examWindowCloseAt` turned out sufficient for everything actually built (see knowledge_base.md §12).
-- **Exam/eval**: `StudentExamSession` → `EvaluationResult` → `AIRRanking`.
+- **Exam/eval**: `StudentExamSession` → `EvaluationResult` → `RankingEntry` (renamed from `AIRRanking` 2026-07-29 — real table rename in place, not a drop/recreate, so existing rows survived; see the `20260729070259_rename_air_ranking_to_ranking_entry` migration).
 - **Cross-cutting**: `AuditLog`, `SecurityEvent`, `ChainAnchor`.
 
 ## Migrations

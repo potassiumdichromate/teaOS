@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma.js";
 // Deletion order matters (FK constraints) — children before parents.
 export async function resetDb() {
   await prisma.$transaction([
-    prisma.aIRRanking.deleteMany(),
+    prisma.rankingEntry.deleteMany(),
     prisma.evaluationResult.deleteMany(),
     prisma.studentExamSession.deleteMany(),
     prisma.chainAnchor.deleteMany(),

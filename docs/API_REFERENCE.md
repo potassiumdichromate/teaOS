@@ -120,12 +120,14 @@ Student authentication is the shared `/auth/login` (a Student is a `User` with r
 | POST | `/admin/evaluation/run` | ADMIN | `{paperId}` → enqueues evaluation job across all `SUBMITTED` sessions for that paper. Genuinely requires `Paper.status === READY` — same drand/tlock timelock gate as starting an exam. |
 | GET | `/admin/evaluation/:sessionId/pipeline` | ADMIN | settled `EvaluationResult` if scored; live stages come over WS `evaluation:{sessionId}:status` |
 
-## AIR Ranking
+## Ranking
+
+Was "AIR Ranking" ("All India Rank") through 2026-07-29 — renamed for a globally-targeted product. Same real mechanism: sort, rank, hash, anchor.
 
 | Method | Path | Role | Notes |
 |---|---|---|---|
-| POST | `/admin/air/publish` | ADMIN | `{paperId, tieBreakRule}` → sorts, ranks, hashes, anchors |
-| GET | `/admin/air/:paperId` | ADMIN | ranking table |
+| POST | `/admin/ranking/publish` | ADMIN | `{paperId, tieBreakRule}` → sorts, ranks, hashes, anchors |
+| GET | `/admin/ranking/:paperId` | ADMIN | ranking table |
 
 ## Student Verification (public)
 

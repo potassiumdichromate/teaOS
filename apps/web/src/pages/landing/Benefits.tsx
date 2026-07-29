@@ -15,7 +15,7 @@ const ROADMAP = [
     with the current pure-JS implementation.
   </>,
   <>Rate limiting on login and the public verification endpoint.</>,
-  <>A sixth on-chain registry for anchoring the aggregate AIR list hash, not just per-student results.</>,
+  <>A sixth on-chain registry for anchoring the aggregate ranking list hash, not just per-student results.</>,
   <>
     India Stack (Aadhaar/DigiLocker) identity-proofing for Student Verification, beyond Application
     ID + DOB.

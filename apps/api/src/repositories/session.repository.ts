@@ -31,7 +31,7 @@ export const sessionRepository = {
     prisma.studentExamSession.findFirst({
       where: { studentId, status: "EVALUATED" },
       orderBy: { submittedAt: "desc" },
-      include: { result: { include: { airRanking: true } }, paper: true },
+      include: { result: { include: { ranking: true } }, paper: true },
     }),
 
   markInProgress: (id: string) =>

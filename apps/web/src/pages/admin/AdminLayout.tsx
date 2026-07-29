@@ -7,7 +7,7 @@ const NAV: NavItem[] = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/blueprints", label: "Blueprints", icon: ScrollText },
   { to: "/admin/papers", label: "Paper generation", icon: FileStack },
-  { to: "/admin/evaluation", label: "Evaluation & AIR", icon: Trophy },
+  { to: "/admin/evaluation", label: "Evaluation & Ranking", icon: Trophy },
   { to: "/admin/compute", label: "Confidential compute", icon: Cpu },
   { to: "/admin/storage", label: "Storage explorer", icon: Database },
 ];
