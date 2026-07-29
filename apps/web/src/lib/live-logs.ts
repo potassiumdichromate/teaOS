@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { wsUrl } from "./origin.js";
 
 export interface LiveLogEntry {
   type: "audit" | "security";
@@ -14,8 +15,7 @@ export function useLiveLogs(max = 30): LiveLogEntry[] {
   const [entries, setEntries] = useState<LiveLogEntry[]>([]);
 
   useEffect(() => {
-    const proto = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${proto}://${window.location.host}/ws`);
+    const ws = new WebSocket(wsUrl("/ws"));
     ws.addEventListener("open", () => ws.send(JSON.stringify({ type: "subscribe", channel: "admin:live-logs" })));
     ws.addEventListener("message", (event) => {
       try {

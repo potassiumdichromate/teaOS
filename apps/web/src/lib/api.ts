@@ -1,3 +1,5 @@
+import { apiUrl } from "./origin.js";
+
 const TOKEN_KEY = "nvei_token";
 
 export function getToken(): string | null {
@@ -18,7 +20,7 @@ export class ApiError extends Error {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(apiUrl(path), {
     ...init,
     headers: {
       "content-type": "application/json",

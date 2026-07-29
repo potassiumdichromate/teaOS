@@ -1,0 +1,107 @@
+# Render Blueprint for apps/api. Deploy: connect this repo in the Render
+# dashboard, "New +" -> "Blueprint", point it at this file. Render then
+# creates the web service, Postgres, and Key Value (Redis) instances below
+# together, wires DATABASE_URL/REDIS_URL automatically, and prompts for
+# every `sync: false` var (the real secrets — 0G/Miden credentials, JWT
+# secret material — nothing here or in git).
+#
+# No rootDir is set on the web service on purpose: the build needs the
+# whole npm-workspaces monorepo (apps/api depends on packages/shared's
+# built output), not just apps/api in isolation.
+#
+# Schema reference: https://render.com/docs/blueprint-spec — cross-check
+# plan names and key spellings there if Render's schema has moved since
+# this was written (2026-07-29).
+
+services:
+  - name: teaos-api
+    type: web
+    runtime: node
+    plan: free
+    region: oregon
+    # `--include=dev` is deliberate, not a mistake: NODE_ENV=production (set
+    # below) would otherwise make `npm install` skip devDependencies, and the
+    # build needs `tsc` (typescript) and the startCommand needs the `prisma`
+    # CLI, both devDependencies at the workspace root. Render doesn't prune
+    # node_modules between build and start, so what's installed here is what
+    # `npx prisma` finds at start time too.
+    buildCommand: npm install --include=dev && npm run build -w packages/shared && npm run build -w apps/api
+    startCommand: npx prisma migrate deploy --schema prisma/schema.prisma && npm run start -w apps/api
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: "4000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: teaos-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: teaos-redis
+          property: connectionString
+
+      # --- Real secrets: never in git, prompted at blueprint-apply time ---
+      - key: JWT_SECRET
+        generateValue: true
+      - key: QUESTION_BANK_MASTER_KEY
+        sync: false # 32-byte hex — see apps/api/.env.example for how to generate one
+      - key: RESULT_KEY_SALT
+        generateValue: true
+      - key: ZG_SERVICE_PRIVATE_KEY
+        sync: false
+      - key: ZG_COMPUTE_API_KEY
+        sync: false
+      - key: QUESTION_REGISTRY_ADDRESS
+        sync: false
+      - key: PAPER_REGISTRY_ADDRESS
+        sync: false
+      - key: SUBMISSION_REGISTRY_ADDRESS
+        sync: false
+      - key: RESULT_REGISTRY_ADDRESS
+        sync: false
+      - key: AUDIT_LOG_REGISTRY_ADDRESS
+        sync: false
+      # The deployed Vercel frontend's real origin, e.g.
+      # "https://teaos.vercel.app" — must be set after the frontend is
+      # deployed once, since the Vercel URL doesn't exist before that.
+      - key: CORS_ORIGIN
+        sync: false
+
+      # --- Network config: real values, safe to commit (no secrets) ---
+      - key: ZG_NETWORK
+        value: mainnet
+      - key: ZG_RPC_URL
+        value: https://evmrpc.0g.ai
+      - key: ZG_CHAIN_ID
+        value: "16661"
+      - key: ZG_STORAGE_INDEXER_URL
+        value: https://indexer-storage-turbo.0g.ai
+      - key: ZG_COMPUTE_ROUTER_URL
+        value: https://router-api.0g.ai/v1
+      - key: ZG_COMPUTE_MODEL
+        value: glm-5.2
+      - key: ZG_COMPUTE_TRUST_MODE
+        value: private
+      - key: TLOCK_NETWORK
+        value: mainnet
+      # Miden bridge stays dormant (knowledge_base.md §11o-§11q) — these
+      # exist only because config/env.ts still requires them to be set.
+      - key: MIDEN_NETWORK
+        value: testnet
+      - key: MIDEN_BRIDGE_URL
+        value: http://localhost:8787
+
+  - name: teaos-redis
+    type: keyvalue
+    plan: free
+    region: oregon
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere (Render services reach it over the private network regardless; tighten if Render's docs recommend it by the time you deploy)
+
+databases:
+  - name: teaos-postgres
+    plan: free
+    region: oregon

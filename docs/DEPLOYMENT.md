@@ -2,7 +2,30 @@
 
 How to actually run this system outside of local dev. For going live specifically on 0G mainnet (real gas, real credentials), see [MAINNET_DEPLOYMENT.md](MAINNET_DEPLOYMENT.md) — this doc covers the general shape of a deployment regardless of network.
 
-**Honest state of this today**: there is no Dockerfile, no CI/CD pipeline, and no infrastructure-as-code in this repo yet. What follows is the real, correct path to a working deployment with what exists today — not aspirational tooling. Adding containerization/CI is tracked in docs/PROJECT_ROADMAP.md, not pretended into existence here.
+**Honest state of this today (updated 2026-07-29)**: `apps/web` deploys to Vercel and `apps/api` deploys to Render, using real config files in this repo — `apps/web/vercel.json` and `render.yaml` at the repo root, not just prose instructions. There is still no Dockerfile and no CI pipeline (see "What's not here yet" below) — those remain real gaps, not silently assumed solved.
+
+## Deploying to Vercel (frontend) + Render (backend)
+
+This is the concrete, current path — the two config files below are real and committed, not aspirational.
+
+### 1. Backend first: Render
+
+1. In the Render dashboard: **New +** → **Blueprint**, point it at this repo. Render reads `render.yaml` (repo root) and proposes three resources together: the `teaos-api` web service, a `teaos-postgres` database, and a `teaos-redis` Key Value instance.
+2. Render will prompt for every env var marked `sync: false` in `render.yaml` before it lets you apply the blueprint — these are the real secrets, listed in `apps/api/.env.example`: `QUESTION_BANK_MASTER_KEY`, `ZG_SERVICE_PRIVATE_KEY`, `ZG_COMPUTE_API_KEY`, the five `*_REGISTRY_ADDRESS` values, and `CORS_ORIGIN`. `JWT_SECRET` and `RESULT_KEY_SALT` are `generateValue: true` — Render generates real random values for those itself, nothing to supply.
+3. **`CORS_ORIGIN` is a real chicken-and-egg**: you don't know the Vercel URL until step 2 (below) exists. Leave it as a placeholder (e.g. `https://placeholder.invalid`) to get Render deployed, then come back and set the real value once you have the Vercel URL — Render redeploys automatically when an env var changes.
+4. `startCommand` in `render.yaml` runs `prisma migrate deploy` before starting the server — the schema is applied for real on every deploy, not a separate manual step you can forget.
+5. Once live, `https://<your-service>.onrender.com/healthz` should return `{"ok":true,"db":true,"redis":true}` — a real check, not a static 200 (see `apps/api/src/routes/health.routes.ts`). If `db`/`redis` are `false`, the `fromDatabase`/`fromService` wiring in `render.yaml` didn't resolve — check the service's env var list in the Render dashboard.
+
+### 2. Frontend: Vercel
+
+1. In the Vercel dashboard: **Add New** → **Project**, import this repo. **Set Root Directory to `apps/web`** in the import screen — this is a real, necessary manual step per [Vercel's own monorepo docs](https://vercel.com/docs/monorepos); it can't be expressed inside `vercel.json` itself. With Root Directory set, Vercel still runs `npm install` from the true repo root (it detects the npm-workspaces `workspaces` field in the root `package.json`), so `apps/web/vercel.json`'s `installCommand`/`buildCommand` (which `cd ../..` back to the repo root to build `packages/shared` before `apps/web`, since Vite needs that package's *built* output, not just its source) work correctly.
+2. Set the one required env var: **`VITE_API_BASE_URL`** = the real Render origin from step 1, e.g. `https://teaos-api.onrender.com` (no trailing slash). This is read by `apps/web/src/lib/origin.ts` at build time — see that file's own comment for exactly how it's used for both REST (`apiUrl()`) and WebSocket (`wsUrl()`) calls. Unset, the app falls back to relative `/api`/`/ws` paths, which is correct for local dev (Vite's dev-server proxy) but wrong here, since Vercel and Render are different origins.
+3. Deploy. `vercel.json`'s `rewrites` entry (`"/(.*)" -> "/index.html"`) is the standard SPA fallback — real static files (JS/CSS/images) still resolve normally; only paths with no matching file (i.e. every client-side React Router route) fall through to `index.html`.
+4. Go back to Render and set the real `CORS_ORIGIN` to this Vercel URL (from step 1.3 above) — until you do, every request from the deployed frontend will be rejected by `cors()` in `apps/api/src/app.ts`, even though everything else works.
+
+### 3. Contracts and 0G credentials
+
+Neither Vercel nor Render deploy `contracts/evm` — that's a one-time Hardhat step you run yourself before Render even needs the registry addresses. See [MAINNET_DEPLOYMENT.md](MAINNET_DEPLOYMENT.md) for the full real sequence (deploy the five registries, get their addresses, get a 0G Compute API key) — do that first, then fill in Render's `sync: false` vars with the real results.
 
 ## Components and where they need to run
 
@@ -47,11 +70,7 @@ cd apps/web
 npm run build   # outputs dist/, ~930kB main bundle (not yet code-split, see docs/PROJECT_ROADMAP.md)
 ```
 
-Serve `dist/` from any static host. **Real constraint worth knowing before you deploy this**: `apps/web/src/lib/api.ts` calls a hardcoded relative path (`/api${path}`), and WebSocket connections likewise target `/ws` relative to the current origin — there is no build-time `API_URL` env var today. This works in local dev only because `vite.config.ts`'s dev server proxies `/api` and `/ws` to `localhost:4000` (a dev-server-only feature, not present in the static `dist/` build). In production you must either:
-1. Serve `apps/web` and `apps/api` from the **same origin**, with a reverse proxy (Nginx, the platform's own rewrite rules, etc.) routing `/api/*` and `/ws` to the `apps/api` process and everything else to the static files, or
-2. Add a real `apps/web` env-driven base URL (not present in the code today) and set `apps/api`'s `CORS_ORIGIN` to match.
-
-Option 1 requires no code change and is the more direct path with what exists now.
+Serve `dist/` from any static host. **Fixed 2026-07-29** (previously a real gap, recorded in knowledge_base.md §11r's original punch-list): `apps/web/src/lib/origin.ts` reads a real build-time env var, `VITE_API_BASE_URL`, for both REST (`apiUrl()`, used by `lib/api.ts`) and WebSocket (`wsUrl()`, used by `lib/live-logs.ts`) calls. Unset, both fall back to the old relative-path behavior (`/api`, `/ws`) — correct for local dev via Vite's dev-server proxy, or for a same-origin reverse-proxy deployment. Set to the backend's real origin (e.g. `https://teaos-api.onrender.com`) for a cross-origin deployment like Vercel + Render — see the "Deploying to Vercel + Render" section above for the concrete steps. Either way, `apps/api`'s `CORS_ORIGIN` must match whatever origin the frontend actually loads from, or every request gets rejected by `cors()` regardless of the base URL being correct.
 
 ## Database migrations in production
 
@@ -63,8 +82,9 @@ npx prisma migrate deploy --schema prisma/schema.prisma
 
 ## What's not here yet
 
-- No Dockerfile for `apps/api` or `apps/web` — straightforward to add (standard multi-stage Node build), not done because no deployment target has needed it yet.
-- No CI pipeline (no `.github/workflows`, no equivalent) — `npm run build`, `npm test`, and `npm run typecheck` are all real, scriptable checks that a pipeline would run; none currently run automatically on push.
-- No infrastructure-as-code (Terraform, Pulumi, etc.) for the Postgres/Redis/hosting layer.
+- No Dockerfile for `apps/api` or `apps/web` — not needed for the Vercel/Render path above (both platforms build directly from the repo, no container step required), but would matter for a different host (a raw VM, Kubernetes, etc.).
+- No CI pipeline (no `.github/workflows`, no equivalent) — `npm run build`, `npm test`, and `npm run typecheck` are all real, scriptable checks that a pipeline would run; none currently run automatically on push. Render/Vercel both run their own build on every push to `main`, which catches a broken build, but nothing runs `npm test` before a deploy goes live.
+- `render.yaml`'s free-tier Postgres/Redis/web service plans have real limitations worth knowing before you rely on them: Render's free Postgres instances are deleted after a fixed retention window, and free web services spin down after a period of inactivity (the next request pays a real cold-start delay). Fine for demoing this prototype; not a substrate for anything that needs to stay up unattended. Upgrading the `plan:` values in `render.yaml` is a one-line change per resource.
+- No preview-deployment CORS handling — `CORS_ORIGIN` in `render.yaml` is a single origin (the Vercel production URL). Vercel's per-PR preview URLs (a different origin each time) will hit CORS rejections against the deployed API unless `apps/api/src/app.ts`'s `cors()` config is extended to accept a pattern or list.
 
 These are tracked, not silently assumed solved — see docs/PROJECT_ROADMAP.md.
