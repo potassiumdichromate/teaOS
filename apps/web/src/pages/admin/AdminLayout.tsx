@@ -1,37 +1,25 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "@/lib/auth-context.js";
-import { Button } from "@/components/ui/button.js";
+import { Outlet } from "react-router-dom";
+import { Cpu, Database, FileStack, LayoutDashboard, ScrollText, Trophy } from "lucide-react";
+import { AppShell, type NavItem } from "@/components/ui/app-shell.js";
+import { NetworkBadge } from "@/components/ui/network-badge.js";
 
-const TABS = [
-  { to: "/admin", label: "Overview", end: true },
-  { to: "/admin/blueprints", label: "Blueprint generator" },
-  { to: "/admin/papers", label: "Paper generation" },
-  { to: "/admin/evaluation", label: "Evaluation & AIR" },
+const NAV: NavItem[] = [
+  { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
+  { to: "/admin/blueprints", label: "Blueprints", icon: ScrollText },
+  { to: "/admin/papers", label: "Paper generation", icon: FileStack },
+  { to: "/admin/evaluation", label: "Evaluation & AIR", icon: Trophy },
+  { to: "/admin/compute", label: "Confidential compute", icon: Cpu },
+  { to: "/admin/storage", label: "Storage explorer", icon: Database },
 ];
 
 export default function AdminLayout() {
-  const { logout } = useAuth();
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-xl font-medium">NTA admin dashboard</h1>
-        <Button variant="ghost" size="sm" onClick={logout}>Sign out</Button>
-      </div>
-      <nav className="mb-8 flex gap-2 border-b border-border pb-3">
-        {TABS.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.end}
-            className={({ isActive }) =>
-              `rounded-md px-3 py-1.5 text-sm ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`
-            }
-          >
-            {tab.label}
-          </NavLink>
-        ))}
-      </nav>
+    <AppShell
+      role="ADMIN"
+      nav={NAV}
+      sidebarFooter={<NetworkBadge endpoint="/admin/system-health" />}
+    >
       <Outlet />
-    </div>
+    </AppShell>
   );
 }

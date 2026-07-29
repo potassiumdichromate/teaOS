@@ -3,8 +3,8 @@
 // rules). This file is the single place to edit landing-page copy.
 
 export const CURRENT_PROBLEMS = [
-  { title: "Paper leaks", detail: "Printed papers and PDFs pass through many hands — printers, couriers, exam centers — each one a leak point." },
-  { title: "Insider attacks", detail: "Anyone with standing access to the question bank or the paper before exam day can exfiltrate it." },
+  { title: "Paper leaks", detail: "Printed papers and PDFs pass through many hands — printers, couriers, delivery centers — each one a leak point." },
+  { title: "Insider attacks", detail: "Anyone with standing access to the question bank or the paper before release day can exfiltrate it." },
   { title: "Question manipulation", detail: "No cryptographic record ties a published question back to what was actually authored and validated." },
   { title: "Result manipulation", detail: "Marking and ranking happen inside opaque systems a student has no way to independently check." },
   { title: "Lack of transparency", detail: "The public has to trust the process happened correctly — there's nothing to verify against." },
@@ -16,7 +16,7 @@ export const PIPELINE = [
   { title: "AI validation", detail: "0G Compute, private TEE mode", real: true },
   { title: "Encrypt & anchor hash", detail: "0G Storage blob, 0G Chain tx", real: true },
   { title: "Master paper generation", detail: "Blueprint-driven selection, app layer", real: true },
-  { title: "Paper release & exam submission", detail: "Miden timelock note + nullifier", real: false },
+  { title: "Paper release & candidate submission", detail: "drand/tlock key release, on-chain commitment", real: true },
   { title: "Evaluation, AIR & verification", detail: "Results hashed, anchored on-chain", real: true },
 ];
 
@@ -24,7 +24,7 @@ export const TECH = [
   { name: "0G Chain", role: "Public, citizen-verifiable anchor for every hash — question, paper, submission, result.", status: "Mainnet live (Aristotle, chain ID 16661)" },
   { name: "0G Storage", role: "Encrypted question/paper/answer blobs, Merkle-proof verified downloads.", status: "Mainnet + testnet" },
   { name: "0G Compute", role: "AI validation genuinely runs inside a hardware TEE — private trust mode, Intel TDX.", status: "Verified live against pc.0g.ai" },
-  { name: "Miden", role: "Cryptographic timelock for the paper's decryption key; private, nullifier-protected submission commitments.", status: "Testnet only — no Miden mainnet exists yet" },
+  { name: "drand", role: "Decentralized randomness beacon; tlock timelock-encrypts the paper's decryption key to a future round, released only once that round's real threshold signature is published.", status: "Live (mainnet quicknet)" },
 ];
 
 export const FLOWS: Record<string, { title: string; steps: string[] }> = {
@@ -38,21 +38,21 @@ export const FLOWS: Record<string, { title: string; steps: string[] }> = {
     ],
   },
   Admin: {
-    title: "Admin (NTA) flow",
+    title: "Program admin flow",
     steps: [
       "Define a blueprint: subject %, chapter %, difficulty %, marks, question count, negative marking",
       "Publish the blueprint (not a paper)",
-      "Trigger paper generation — selection, assembly, encryption, on-chain anchor, Miden timelock seal",
+      "Trigger paper generation — selection, assembly, encryption, on-chain anchor, drand/tlock timelock seal",
       "Monitor centers, schedule, security events, and blockchain anchors from one dashboard",
     ],
   },
   Student: {
     title: "Student flow",
     steps: [
-      "Log in at the exam center at the scheduled time",
-      "Start the exam once the Miden timelock genuinely unlocks — same questions, personally randomized order",
+      "Log in at the examination center at the scheduled time",
+      "Start the assessment once the drand/tlock timelock genuinely unlocks — same questions, personally randomized order",
       "Answer, mark for review, navigate freely, autosave runs continuously",
-      "Submit — answers are encrypted, committed via a private Miden note, and anchored on-chain",
+      "Submit — answers are encrypted and anchored on-chain; the registry contract's own write-once guard makes a second submission impossible",
       "Later, verify your own result independently at /verify",
     ],
   },
@@ -62,7 +62,7 @@ export const FLOWS: Record<string, { title: string; steps: string[] }> = {
       "Center staff log in and verify gateway/network status",
       "Monitor exam PC health and connected students",
       "Enroll students for the scheduled paper",
-      "Authorization to start is gated on the real Miden timelock state — not a toggle the center controls",
+      "Authorization to start is gated on the real drand/tlock timelock state — not a toggle the center controls",
     ],
   },
   AI: {
@@ -78,8 +78,8 @@ export const FLOWS: Record<string, { title: string; steps: string[] }> = {
     title: "Blockchain flow",
     steps: [
       "Every accepted question's content hash + validation hash → 0G Chain QuestionRegistry",
-      "Every master paper's hash → PaperRegistry, sealed behind a Miden testnet timelock note",
-      "Every submission → SubmissionRegistry, with a private Miden commitment note (nullifier-protected)",
+      "Every master paper's hash → PaperRegistry, sealed behind a real drand/tlock timelock",
+      "Every submission → SubmissionRegistry, whose own write-once guard makes a second submission for the same session structurally impossible",
       "Every result → ResultRegistry, keyed so only the student who knows their own ID+DOB can look themselves up",
     ],
   },
@@ -87,13 +87,13 @@ export const FLOWS: Record<string, { title: string; steps: string[] }> = {
 
 export const GOVERNMENT_BENEFITS = [
   "A tamper-evident public record for every stage — not a claim, a re-checkable one",
-  "Insider risk reduced structurally: no standing key exists to decrypt the paper before exam time, for anyone, including administrators",
+  "Insider risk reduced structurally: no standing key exists to decrypt the paper before release time, for anyone, including administrators",
   "Every access attempt is logged, and the log itself is hash-anchored so tampering with the log is detectable",
 ];
 
 export const COURT_BENEFITS = [
   "Disputes over result manipulation become independently re-checkable: the hash, the proof, and the chain transaction are all public",
-  "A challenged result doesn't require trusting the examination body's internal logs — an outside party can recompute the same checks this system runs",
+  "A challenged result doesn't require trusting the assessment body's internal logs — an outside party can recompute the same checks this system runs",
   "Chain of custody for a question, from submission to paper inclusion, is cryptographically continuous",
 ];
 
@@ -114,11 +114,11 @@ export const FAQ = [
   },
   {
     q: "So does a TEE assemble the master paper too?",
-    a: "No, and we don't claim it does. No generic \"TEE for arbitrary business logic\" product is currently documented by either 0G or Miden. Paper assembly runs as access-controlled, fully audit-logged application code; the paper's decryption key is what's genuinely hardware/protocol-enforced unavailable early, via a Miden timelock — not the assembly logic itself.",
+    a: "No, and we don't claim it does. No generic \"TEE for arbitrary business logic\" product is currently documented by 0G. Paper assembly runs as access-controlled, fully audit-logged application code; the paper's decryption key is what's genuinely cryptographically unavailable early, via a real drand/tlock timelock — not the assembly logic itself.",
   },
   {
-    q: "Is Miden live on mainnet?",
-    a: "No — Miden currently has testnet and devnet only, confirmed directly from Miden's own protocol documentation, which itself carries an alpha-stage warning. Every Miden-facing feature here targets testnet and is badged as such.",
+    q: "Is the timelock actually decentralized, or could you unlock it early yourselves?",
+    a: "It's real drand mainnet — the League of Entropy's public randomness beacon, run by independent operators (Cloudflare, Protocol Labs, EPFL, UCL, and others). The paper's key is encrypted to a future round; it only becomes decryptable once that round's real threshold signature is published, which no single operator (and no threshold-minus-one collusion) can produce early. Proven live end to end against real drand and 0G mainnet — every anchor is independently checkable on chain.",
   },
   {
     q: "What happens if a student never gets a chance to verify their result?",

@@ -8,15 +8,57 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image:
-      radial-gradient(circle at 15% 0%, hsl(262 83% 30% / 0.25), transparent 40%),
-      radial-gradient(circle at 85% 10%, hsl(217 91% 30% / 0.2), transparent 40%);
+    /* The old theme painted two heavy purple/blue radial glows here. Kept at
+       a fraction of the intensity so the page still has depth without the
+       "AI startup gradient" look the redesign is moving away from. */
+    background-image: radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      hsl(212 60% 40% / 0.07),
+      transparent 60%
+    );
     background-attachment: fixed;
+  }
+
+  /* Native form controls: dark, quiet, consistent across portals. */
+  input[type="radio"],
+  input[type="checkbox"] {
+    @apply h-4 w-4 shrink-0;
+    accent-color: hsl(212 92% 60%);
+  }
+  ::placeholder {
+    @apply text-muted-foreground/70;
+  }
+  ::selection {
+    background: hsl(212 92% 60% / 0.28);
+  }
+
+  /* Scrollbars inside panels — thin, unobtrusive. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(222 12% 28%) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: hsl(222 12% 24%);
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
 @layer components {
+  /* Legacy alias kept so pages/landing/* and anything else still referencing
+     it keeps rendering — it is now a flat surface, not glass. */
   .glass-panel {
-    @apply bg-card border border-border rounded-lg backdrop-blur-md shadow-glass;
+    @apply rounded-lg border border-border bg-card shadow-panel;
+  }
+
+  /* Small-caps section/field label used across every portal. */
+  .ui-label {
+    @apply text-2xs font-medium uppercase tracking-label text-muted-foreground;
   }
 }

@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Activity, Building2, CalendarClock, Link2, ShieldAlert, Users } from "lucide-react";
 import { api } from "@/lib/api.js";
 import { useLiveLogs } from "@/lib/live-logs.js";
+import { Badge, HealthDot, StatusBadge } from "@/components/ui/badge.js";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.js";
+import { EmptyState } from "@/components/ui/empty-state.js";
+import { SkeletonRows } from "@/components/ui/loading.js";
+import { HashValue, explorerTxUrl } from "@/components/ui/mono.js";
+import { PageHeader } from "@/components/ui/page-header.js";
+import { StatGrid, StatTile } from "@/components/ui/stat.js";
+import { DataTable, type Column } from "@/components/ui/table.js";
+import { networkLabel } from "@/components/ui/network-badge.js";
 
 interface Overview {
   totalTeachers: number;
@@ -19,17 +28,49 @@ interface Health {
   zgChain: { reachable: boolean; blockNumber: number | null };
   queues: Record<string, { active: number; waiting: number; completed: number; failed: number }>;
 }
-interface SecurityEvent { id: string; severity: string; category: string; createdAt: string; detail: unknown }
-interface ChainAnchor { id: string; contractName: string; entityType: string; txHash: string; createdAt: string }
-interface BlockchainEvents { chainAnchors: ChainAnchor[]; midenNotes: unknown[] }
-interface CenterRow { id: string; name: string; centerCode: string; _count: { examPCs: number; sessions: number } }
-interface ScheduleRow { id: string; status: string; examStartAt: string; examWindowCloseAt: string; blueprint: { title: string } }
-
-const chartTick = { fill: "var(--text-secondary, #9a9891)", fontSize: 12 };
-
-function HealthDot({ ok }: { ok: boolean }) {
-  return <span className={`inline-block h-2 w-2 rounded-full ${ok ? "bg-success" : "bg-danger"}`} />;
+interface SecurityEvent {
+  id: string;
+  severity: string;
+  category: string;
+  createdAt: string;
+  detail: unknown;
 }
+interface ChainAnchor {
+  id: string;
+  contractName: string;
+  entityType: string;
+  txHash: string;
+  createdAt: string;
+}
+interface BlockchainEvents {
+  chainAnchors: ChainAnchor[];
+}
+interface CenterRow {
+  id: string;
+  name: string;
+  centerCode: string;
+  _count: { examPCs: number; sessions: number };
+}
+interface ScheduleRow {
+  id: string;
+  status: string;
+  examStartAt: string;
+  examWindowCloseAt: string;
+  blueprint: { title: string };
+}
+
+// Single hue for both charts: each is one series, so color carries no
+// identity here — it would be noise, not information.
+const SERIES = "hsl(212 92% 60%)";
+const AXIS_TICK = { fill: "hsl(215 12% 58%)", fontSize: 11 };
+const GRID = "hsl(222 14% 18%)";
+const TOOLTIP_STYLE = {
+  background: "hsl(222 16% 12%)",
+  border: "1px solid hsl(222 12% 28%)",
+  borderRadius: 8,
+  fontSize: 12,
+  padding: "6px 10px",
+} as const;
 
 export default function AdminOverview() {
   const [overview, setOverview] = useState<Overview | null>(null);
@@ -49,31 +90,187 @@ export default function AdminOverview() {
     api<ScheduleRow[]>("/admin/schedule").then(setSchedule);
   }, []);
 
-  return (
-    <div className="space-y-6">
-      {overview && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard label="Teachers" value={overview.totalTeachers} />
-          <StatCard label="Students" value={overview.totalStudents} />
-          <StatCard label="Accepted questions" value={overview.questionsByStatus.ACCEPTED ?? 0} />
-          <StatCard label="Rejected questions" value={overview.questionsByStatus.REJECTED ?? 0} />
-        </div>
-      )}
+  const anchorColumns: Column<ChainAnchor>[] = [
+    {
+      key: "contract",
+      header: "Registry",
+      cell: (a) => <span className="text-foreground">{a.contractName}</span>,
+    },
+    {
+      key: "entity",
+      header: "Entity",
+      cell: (a) => <span className="text-muted-foreground">{a.entityType}</span>,
+      hideOnMobile: true,
+    },
+    {
+      key: "tx",
+      header: "Transaction",
+      align: "right",
+      cell: (a) => (
+        <HashValue
+          value={a.txHash}
+          href={explorerTxUrl(a.txHash, health?.network)}
+          className="justify-end"
+        />
+      ),
+    },
+  ];
 
-      <div className="grid gap-6 md:grid-cols-2">
+  const securityColumns: Column<SecurityEvent>[] = [
+    {
+      key: "category",
+      header: "Category",
+      cell: (e) => <span className="text-foreground">{e.category}</span>,
+    },
+    {
+      key: "severity",
+      header: "Severity",
+      cell: (e) => <StatusBadge status={e.severity} />,
+    },
+    {
+      key: "at",
+      header: "When",
+      align: "right",
+      cell: (e) => (
+        <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+          {new Date(e.createdAt).toLocaleTimeString()}
+        </span>
+      ),
+    },
+  ];
+
+  const centerColumns: Column<CenterRow>[] = [
+    {
+      key: "name",
+      header: "Center",
+      cell: (c) => (
+        <span>
+          <span className="block text-foreground">{c.name}</span>
+          <span className="block font-mono text-2xs text-muted-foreground">{c.centerCode}</span>
+        </span>
+      ),
+    },
+    {
+      key: "pcs",
+      header: "PCs",
+      align: "right",
+      cell: (c) => <span className="font-mono tabular-nums">{c._count.examPCs}</span>,
+      width: "w-20",
+    },
+    {
+      key: "sessions",
+      header: "Candidates",
+      align: "right",
+      cell: (c) => <span className="font-mono tabular-nums">{c._count.sessions}</span>,
+      width: "w-28",
+    },
+  ];
+
+  const scheduleColumns: Column<ScheduleRow>[] = [
+    {
+      key: "title",
+      header: "Paper",
+      cell: (s) => <span className="text-foreground">{s.blueprint.title}</span>,
+    },
+    {
+      key: "window",
+      header: "Exam window opens",
+      cell: (s) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {new Date(s.examStartAt).toLocaleString()}
+        </span>
+      ),
+      hideOnMobile: true,
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      cell: (s) => <StatusBadge status={s.status} />,
+      width: "w-32",
+    },
+  ];
+
+  const activityColumns: Column<{ teacher: string; count: number }>[] = [
+    {
+      key: "teacher",
+      header: "Author",
+      cell: (t) => <span className="text-foreground">{t.teacher}</span>,
+    },
+    {
+      key: "count",
+      header: "Questions authored",
+      align: "right",
+      cell: (t) => <span className="font-mono tabular-nums">{t.count}</span>,
+      width: "w-44",
+    },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title="Control plane"
+        description="Live state of the assessment estate — question bank, infrastructure health, on-chain anchoring and the audit trail, all read from the running system."
+        actions={
+          health ? (
+            <Badge tone={health.zgChain.reachable ? "success" : "danger"} dot>
+              {networkLabel(health.network)}
+            </Badge>
+          ) : null
+        }
+      />
+
+      <StatGrid columns={4}>
+        <StatTile
+          label="Authors"
+          value={overview?.totalTeachers ?? 0}
+          loading={!overview}
+          icon={<Users className="h-3.5 w-3.5" />}
+        />
+        <StatTile
+          label="Candidates"
+          value={overview?.totalStudents ?? 0}
+          loading={!overview}
+          icon={<Users className="h-3.5 w-3.5" />}
+        />
+        <StatTile
+          label="Accepted questions"
+          value={overview?.questionsByStatus.ACCEPTED ?? 0}
+          tone="success"
+          loading={!overview}
+          hint="Validated, encrypted and anchored"
+        />
+        <StatTile
+          label="Rejected questions"
+          value={overview?.questionsByStatus.REJECTED ?? 0}
+          tone={(overview?.questionsByStatus.REJECTED ?? 0) > 0 ? "danger" : "default"}
+          loading={!overview}
+          hint="Failed a validation threshold"
+        />
+      </StatGrid>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Questions by subject</CardTitle>
-            <CardDescription>Accepted question bank composition</CardDescription>
+            <CardDescription>Accepted question-bank composition</CardDescription>
           </CardHeader>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={overview?.questionsBySubject ?? []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="subject" tick={chartTick} axisLine={false} tickLine={false} />
-                <YAxis tick={chartTick} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "var(--surface-1)", border: "1px solid var(--border)" }} />
-                <Bar dataKey="count" fill="#378ADD" radius={4} />
+              <BarChart
+                data={overview?.questionsBySubject ?? []}
+                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+              >
+                <CartesianGrid stroke={GRID} vertical={false} />
+                <XAxis dataKey="subject" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  labelStyle={{ color: "hsl(210 20% 94%)" }}
+                  itemStyle={{ color: "hsl(215 12% 58%)" }}
+                  cursor={{ fill: "hsl(222 16% 14% / 0.6)" }}
+                />
+                <Bar dataKey="count" name="Questions" fill={SERIES} radius={[4, 4, 0, 0]} maxBarSize={44} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -82,156 +279,236 @@ export default function AdminOverview() {
         <Card>
           <CardHeader>
             <CardTitle>Questions by difficulty</CardTitle>
-            <CardDescription>AI-predicted, not teacher-suggested</CardDescription>
+            <CardDescription>AI-predicted, not author-suggested</CardDescription>
           </CardHeader>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={overview?.questionsByDifficulty ?? []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="difficulty" tick={chartTick} axisLine={false} tickLine={false} />
-                <YAxis tick={chartTick} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "var(--surface-1)", border: "1px solid var(--border)" }} />
-                <Bar dataKey="count" fill="#7F77DD" radius={4} />
+              <BarChart
+                data={overview?.questionsByDifficulty ?? []}
+                margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+              >
+                <CartesianGrid stroke={GRID} vertical={false} />
+                <XAxis dataKey="difficulty" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  labelStyle={{ color: "hsl(210 20% 94%)" }}
+                  itemStyle={{ color: "hsl(215 12% 58%)" }}
+                  cursor={{ fill: "hsl(222 16% 14% / 0.6)" }}
+                />
+                <Bar dataKey="count" name="Questions" fill={SERIES} radius={[4, 4, 0, 0]} maxBarSize={44} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="mt-5 grid gap-5 lg:grid-cols-[320px_1fr]">
         <Card>
           <CardHeader>
             <CardTitle>System health</CardTitle>
-            <CardDescription>{health?.network ?? "…"}</CardDescription>
+            <CardDescription>{health ? networkLabel(health.network) : "Checking…"}</CardDescription>
           </CardHeader>
-          {health && (
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="flex items-center gap-2"><HealthDot ok={health.db} /> Postgres</span></div>
-              <div className="flex justify-between"><span className="flex items-center gap-2"><HealthDot ok={health.redis} /> Redis</span></div>
-              <div className="flex justify-between">
-                <span className="flex items-center gap-2"><HealthDot ok={health.zgChain.reachable} /> 0G Chain</span>
-                <span className="text-muted-foreground">block {health.zgChain.blockNumber ?? "—"}</span>
-              </div>
-              {Object.entries(health.queues).map(([name, counts]) => (
-                <div key={name} className="flex justify-between text-muted-foreground">
-                  <span>{name}</span>
-                  <span>{counts.active} active · {counts.waiting} waiting · {counts.failed} failed</span>
+          {!health ? (
+            <SkeletonRows rows={4} />
+          ) : (
+            <div className="space-y-3">
+              <dl className="divide-y divide-border/70">
+                <HealthRow label="Postgres" ok={health.db} />
+                <HealthRow label="Redis" ok={health.redis} />
+                <HealthRow
+                  label="0G Chain"
+                  ok={health.zgChain.reachable}
+                  value={
+                    health.zgChain.blockNumber != null
+                      ? `block ${health.zgChain.blockNumber.toLocaleString()}`
+                      : "—"
+                  }
+                />
+              </dl>
+              <div>
+                <p className="ui-label mb-2">Workers</p>
+                <div className="space-y-2">
+                  {Object.entries(health.queues).map(([name, counts]) => (
+                    <div key={name} className="text-xs">
+                      <p className="text-foreground">{name}</p>
+                      <p className="font-mono tabular-nums text-muted-foreground">
+                        <span className={counts.active > 0 ? "text-primary" : ""}>
+                          {counts.active}
+                        </span>
+                        <span> active · {counts.waiting} waiting · </span>
+                        <span className={counts.failed > 0 ? "text-danger" : ""}>
+                          {counts.failed}
+                        </span>
+                        <span> failed</span>
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           )}
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card flush className="overflow-hidden">
+          <CardHeader
+            className="mb-0 px-5 pt-5"
+            action={
+              <Badge tone={liveLogs.length > 0 ? "success" : "neutral"} dot pulse={liveLogs.length > 0}>
+                {liveLogs.length > 0 ? "Streaming" : "Idle"}
+              </Badge>
+            }
+          >
+            <CardTitle>Live audit log</CardTitle>
+            <CardDescription>
+              Pushed over WebSocket as events are written — not a polled snapshot.
+            </CardDescription>
+          </CardHeader>
+          <div className="mt-4 max-h-64 overflow-y-auto border-t border-border">
+            {liveLogs.length === 0 ? (
+              <EmptyState
+                compact
+                icon={<Activity className="h-4 w-4" />}
+                title="Waiting for activity"
+                description="Anything the platform does — logins, validations, anchors — appears here the moment it is recorded."
+              />
+            ) : (
+              <ul className="divide-y divide-border/60 font-mono text-xs">
+                {liveLogs.map((l) => (
+                  <li key={l.id} className="flex items-center justify-between gap-4 px-5 py-1.5">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span
+                        className={
+                          l.type === "security"
+                            ? "h-1.5 w-1.5 shrink-0 rounded-full bg-warning"
+                            : "h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                        }
+                      />
+                      <span className="truncate text-foreground">
+                        {l.action ?? `${l.severity}:${l.category}`}
+                      </span>
+                    </span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">
+                      {new Date(l.createdAt).toLocaleTimeString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Card flush>
+          <CardHeader className="mb-0 px-5 pt-5">
+            <CardTitle>On-chain anchors</CardTitle>
+            <CardDescription>
+              0G Chain registry writes. Every hash here is re-checkable in the block explorer
+              without trusting this dashboard.
+            </CardDescription>
+          </CardHeader>
+          <div className="mt-4">
+            <DataTable
+              columns={anchorColumns}
+              rows={blockchainEvents?.chainAnchors}
+              rowKey={(a) => a.id}
+              maxHeight="max-h-72"
+              dense
+              emptyIcon={<Link2 className="h-4 w-4" />}
+              emptyTitle="No anchors yet"
+              emptyDescription="Anchors appear once a question, paper, submission or result is written on-chain."
+            />
+          </div>
+        </Card>
+
+        <Card flush>
+          <CardHeader className="mb-0 px-5 pt-5">
             <CardTitle>Security events</CardTitle>
-            <CardDescription>Auth failures and anomalies</CardDescription>
+            <CardDescription>Authentication failures and anomalies</CardDescription>
           </CardHeader>
-          <div className="max-h-56 space-y-1 overflow-y-auto text-sm">
-            {(securityEvents ?? []).map((e) => (
-              <div key={e.id} className="flex justify-between border-b border-border py-1">
-                <span className={e.severity === "CRITICAL" ? "text-danger" : "text-warning"}>{e.category}</span>
-                <span className="text-muted-foreground">{new Date(e.createdAt).toLocaleTimeString()}</span>
-              </div>
-            ))}
-            {securityEvents?.length === 0 && <p className="text-muted-foreground">No events recorded.</p>}
-          </div>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Blockchain events</CardTitle>
-            <CardDescription>0G Chain anchors · Miden notes</CardDescription>
-          </CardHeader>
-          <div className="max-h-56 space-y-1 overflow-y-auto text-sm">
-            {(blockchainEvents?.chainAnchors ?? []).map((a) => (
-              <div key={a.id} className="flex justify-between border-b border-border py-1">
-                <span>{a.contractName}</span>
-                <span className="truncate text-muted-foreground" title={a.txHash}>{a.txHash.slice(0, 10)}…</span>
-              </div>
-            ))}
-            {blockchainEvents?.chainAnchors.length === 0 && <p className="text-muted-foreground">No anchors yet.</p>}
+          <div className="mt-4">
+            <DataTable
+              columns={securityColumns}
+              rows={securityEvents}
+              rowKey={(e) => e.id}
+              maxHeight="max-h-72"
+              dense
+              emptyIcon={<ShieldAlert className="h-4 w-4" />}
+              emptyTitle="No security events recorded"
+              emptyDescription="Nothing anomalous has been logged on this deployment."
+            />
           </div>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Live audit log</CardTitle>
-          <CardDescription>Streaming over WebSocket as it happens</CardDescription>
-        </CardHeader>
-        <div className="max-h-64 space-y-1 overflow-y-auto font-mono text-xs">
-          {liveLogs.length === 0 && <p className="font-sans text-sm text-muted-foreground">Waiting for activity…</p>}
-          {liveLogs.map((l) => (
-            <div key={l.id} className="flex justify-between border-b border-border py-1 text-muted-foreground">
-              <span className="text-foreground">{l.action ?? `${l.severity}:${l.category}`}</span>
-              <span>{new Date(l.createdAt).toLocaleTimeString()}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Centers</CardTitle>
-            <CardDescription>PC count · students connected</CardDescription>
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Card flush>
+          <CardHeader className="mb-0 px-5 pt-5">
+            <CardTitle>Examination centers</CardTitle>
+            <CardDescription>Registered machines and enrolled candidates</CardDescription>
           </CardHeader>
-          <div className="space-y-1 text-sm">
-            {(centers ?? []).map((c) => (
-              <div key={c.id} className="flex justify-between border-b border-border py-1">
-                <span>{c.name} ({c.centerCode})</span>
-                <span className="text-muted-foreground">{c._count.examPCs} PCs · {c._count.sessions} students</span>
-              </div>
-            ))}
-            {centers?.length === 0 && <p className="text-muted-foreground">No centers registered.</p>}
+          <div className="mt-4">
+            <DataTable
+              columns={centerColumns}
+              rows={centers}
+              rowKey={(c) => c.id}
+              dense
+              emptyIcon={<Building2 className="h-4 w-4" />}
+              emptyTitle="No centers registered"
+            />
           </div>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card flush>
+          <CardHeader className="mb-0 px-5 pt-5">
             <CardTitle>Exam schedule</CardTitle>
-            <CardDescription>Papers by exam window</CardDescription>
+            <CardDescription>Generated papers by exam window</CardDescription>
           </CardHeader>
-          <div className="space-y-1 text-sm">
-            {(schedule ?? []).map((s) => (
-              <div key={s.id} className="flex justify-between border-b border-border py-1">
-                <span>{s.blueprint.title}</span>
-                <span className="text-muted-foreground">{new Date(s.examStartAt).toLocaleString()} · {s.status}</span>
-              </div>
-            ))}
-            {schedule?.length === 0 && <p className="text-muted-foreground">No papers scheduled.</p>}
+          <div className="mt-4">
+            <DataTable
+              columns={scheduleColumns}
+              rows={schedule}
+              rowKey={(s) => s.id}
+              dense
+              emptyIcon={<CalendarClock className="h-4 w-4" />}
+              emptyTitle="No papers scheduled"
+              emptyDescription="Generate a paper from a published blueprint to schedule an exam window."
+            />
           </div>
         </Card>
       </div>
 
-      {overview && overview.teacherActivity.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Teacher activity</CardTitle>
-            <CardDescription>Top submitters</CardDescription>
+      {overview && overview.teacherActivity.length > 0 ? (
+        <Card flush className="mt-5">
+          <CardHeader className="mb-0 px-5 pt-5">
+            <CardTitle>Author activity</CardTitle>
+            <CardDescription>Top contributors to the question bank</CardDescription>
           </CardHeader>
-          <div className="space-y-1 text-sm">
-            {overview.teacherActivity.map((t) => (
-              <div key={t.teacher} className="flex justify-between border-b border-border py-1">
-                <span>{t.teacher}</span>
-                <span className="text-muted-foreground">{t.count} questions</span>
-              </div>
-            ))}
+          <div className="mt-4">
+            <DataTable
+              columns={activityColumns}
+              rows={overview.teacherActivity}
+              rowKey={(t) => t.teacher}
+              dense
+            />
           </div>
         </Card>
-      )}
-    </div>
+      ) : null}
+    </>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function HealthRow({ label, ok, value }: { label: string; ok: boolean; value?: string }) {
   return (
-    <Card className="text-center">
-      <CardHeader>
-        <CardTitle>{value}</CardTitle>
-        <CardDescription>{label}</CardDescription>
-      </CardHeader>
-    </Card>
+    <div className="flex items-center justify-between gap-3 py-2 first:pt-0">
+      <dt className="flex items-center gap-2 text-sm text-foreground">
+        <HealthDot ok={ok} />
+        {label}
+      </dt>
+      <dd className="font-mono text-xs tabular-nums text-muted-foreground">
+        {value ?? (ok ? "reachable" : "unreachable")}
+      </dd>
+    </div>
   );
 }

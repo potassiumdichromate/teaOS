@@ -12,8 +12,11 @@ import AdminOverview from "@/pages/admin/AdminOverview.js";
 import BlueprintGenerator from "@/pages/admin/BlueprintGenerator.js";
 import PaperGeneration from "@/pages/admin/PaperGeneration.js";
 import EvaluationAIR from "@/pages/admin/EvaluationAIR.js";
+import ComputeDashboard from "@/pages/admin/ComputeDashboard.js";
+import StorageExplorer from "@/pages/admin/StorageExplorer.js";
 import CenterHome from "@/pages/center/CenterHome.js";
 import StudentExamClient from "@/pages/student/StudentExamClient.js";
+import ObserverHome from "@/pages/observer/ObserverHome.js";
 
 export default function App() {
   return (
@@ -47,6 +50,8 @@ export default function App() {
         <Route path="blueprints" element={<BlueprintGenerator />} />
         <Route path="papers" element={<PaperGeneration />} />
         <Route path="evaluation" element={<EvaluationAIR />} />
+        <Route path="compute" element={<ComputeDashboard />} />
+        <Route path="storage" element={<StorageExplorer />} />
       </Route>
       <Route
         path="/center/*"
@@ -61,6 +66,14 @@ export default function App() {
         element={
           <ProtectedRoute role="STUDENT">
             <StudentExamClient />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/observer/*"
+        element={
+          <ProtectedRoute role="OBSERVER">
+            <ObserverHome />
           </ProtectedRoute>
         }
       />
