@@ -10,7 +10,6 @@ import { Field, Input } from "@/components/ui/input.js";
 import { ErrorState } from "@/components/ui/empty-state.js";
 import { Brand, PORTAL_BLURB, PORTAL_LABEL, ROLE_ICON } from "@/components/ui/brand.js";
 import { Spinner } from "@/components/ui/loading.js";
-import { Dock, type DockItemData } from "@/components/ui/dock.js";
 import ShapeGrid from "@/components/ui/shape-grid.js";
 
 const ROLE_HOME: Record<RoleType, string> = {
@@ -87,14 +86,6 @@ export default function Login() {
     setFilled(account.role);
     setError(null);
   }
-
-  const dockItems: DockItemData[] = DEMO_ACCOUNTS.map((account) => ({
-    key: account.role,
-    icon: ROLE_ICON[account.role],
-    label: PORTAL_LABEL[account.role],
-    active: filled === account.role,
-    onClick: () => useDemoAccount(account),
-  }));
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[1.05fr_1fr]">
@@ -194,15 +185,50 @@ export default function Login() {
           </form>
 
           {/* Demo accounts */}
-          <div className="mt-8 rounded-lg border border-border bg-card pb-4">
-            <div className="px-4 pt-3">
+          <div className="mt-8 rounded-lg border border-border bg-card">
+            <div className="border-b border-border px-4 py-3">
               <p className="text-sm font-medium text-foreground">Demo accounts</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Hover a role, click to fill the form.
+                Evaluation environment — pick a role to fill the form.
               </p>
             </div>
-            <Dock items={dockItems} />
-            <p className="px-4 text-center text-2xs leading-relaxed text-muted-foreground">
+            <ul className="divide-y divide-border/70">
+              {DEMO_ACCOUNTS.map((account) => {
+                const Icon = ROLE_ICON[account.role];
+                const isFilled = filled === account.role;
+                return (
+                  <li key={account.role}>
+                    <button
+                      type="button"
+                      onClick={() => useDemoAccount(account)}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/60"
+                    >
+                      <span
+                        className={
+                          isFilled
+                            ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-primary/40 bg-primary/10 text-primary"
+                            : "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground"
+                        }
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm text-foreground">
+                          {PORTAL_LABEL[account.role]}
+                        </span>
+                        <span className="block truncate font-mono text-2xs text-muted-foreground">
+                          {account.email}
+                        </span>
+                      </span>
+                      <span className="hidden shrink-0 text-2xs text-muted-foreground sm:block">
+                        {isFilled ? "Filled" : "Use"}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="border-t border-border px-4 py-2.5 text-2xs leading-relaxed text-muted-foreground">
               All five use the password{" "}
               <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
                 {DEMO_PASSWORD}
@@ -212,10 +238,7 @@ export default function Login() {
           </div>
 
           {filled ? (
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              <span className="text-foreground">{PORTAL_LABEL[filled]}</span> — {PORTAL_BLURB[filled]}.
-              Filled <code className="font-mono text-2xs">{email}</code>.
-            </p>
+            <p className="mt-3 text-xs text-muted-foreground">{PORTAL_BLURB[filled]}.</p>
           ) : null}
 
           <div className="mt-8 flex items-center justify-between gap-4 text-xs">

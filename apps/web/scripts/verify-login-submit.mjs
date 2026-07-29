@@ -1,6 +1,8 @@
-// Verifies (1) the Login page's new ShapeGrid background + Dock demo-account
-// picker, and (2) SubmitQuestion's post-completion toast + form-clear fix.
-// Same CDP pattern as the other verify-*.mjs scripts in this directory.
+// Verifies (1) the Login page's ShapeGrid background + the plain demo-
+// account list (the Dock variant was tried and reverted 2026-07-29 — see
+// knowledge_base.md — this now checks the list that replaced it), and (2)
+// SubmitQuestion's post-completion toast + form-clear fix. Same CDP pattern
+// as the other verify-*.mjs scripts in this directory.
 // Usage: node apps/web/scripts/verify-login-submit.mjs [outDir]
 import WebSocket from "ws";
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -64,7 +66,7 @@ async function mouse(type, x, y) {
   });
 }
 
-console.log("\n=== LOGIN PAGE: background + Dock ===");
+console.log("\n=== LOGIN PAGE: background + demo-account list ===");
 await goto(`${BASE}/login`);
 await shot("login-01-initial");
 check("hero-style ShapeGrid canvas present on login", await evalJs("!!document.querySelector('canvas')"));
@@ -72,29 +74,20 @@ check(
   "canvas is pointer-events:none (doesn't block anything)",
   (await evalJs("getComputedStyle(document.querySelector('canvas')).pointerEvents")) === "none",
 );
-const dockButtons = await evalJs(
-  `(() => { const toolbar = document.querySelector('[role="toolbar"][aria-label="Demo account picker"]'); return toolbar ? toolbar.querySelectorAll('button').length : 0; })()`,
+const rowCount = await evalJs(
+  `(() => { const h = [...document.querySelectorAll('p')].find(p => p.textContent === 'Demo accounts'); const list = h?.closest('.rounded-lg')?.querySelector('ul'); return list ? list.querySelectorAll('li button').length : 0; })()`,
 );
-check("Dock renders 5 role buttons", dockButtons === 5, `found ${dockButtons}`);
+check("demo-account list renders 5 rows", rowCount === 5, `found ${rowCount}`);
 
-const dockBox = await evalJs(
-  `(() => { const toolbar = document.querySelector('[role="toolbar"][aria-label="Demo account picker"]'); const btns = toolbar.querySelectorAll('button'); const r = btns[2].getBoundingClientRect(); return { x: r.left + r.width/2, y: r.top + r.height/2, w0: r.width }; })()`,
+const rowBox = await evalJs(
+  `(() => { const h = [...document.querySelectorAll('p')].find(p => p.textContent === 'Demo accounts'); const btns = h.closest('.rounded-lg').querySelectorAll('ul li button'); const r = btns[2].getBoundingClientRect(); return { x: r.left + r.width/2, y: r.top + r.height/2 }; })()`,
 );
-await mouse("mouseMoved", dockBox.x, dockBox.y);
-await sleep(500);
-const afterHover = await evalJs(
-  `(() => { const toolbar = document.querySelector('[role="toolbar"][aria-label="Demo account picker"]'); const btns = toolbar.querySelectorAll('button'); const r = btns[2].getBoundingClientRect(); const tip = toolbar.parentElement.querySelector('.absolute.-top-8'); return { w1: r.width, tooltip: tip ? tip.textContent : null }; })()`,
-);
-check("dock item magnifies on hover", afterHover.w1 > dockBox.w0, `${dockBox.w0} -> ${afterHover.w1}`);
-check("dock item shows a label tooltip on hover", !!afterHover.tooltip, JSON.stringify(afterHover.tooltip));
-await shot("login-02-dock-hover");
-
-await mouse("mousePressed", dockBox.x, dockBox.y);
-await mouse("mouseReleased", dockBox.x, dockBox.y);
+await mouse("mousePressed", rowBox.x, rowBox.y);
+await mouse("mouseReleased", rowBox.x, rowBox.y);
 await sleep(400);
 const filledEmail = await evalJs("document.querySelector('input[type=email]').value");
-check("clicking a dock item fills the email field", filledEmail.length > 0, filledEmail);
-await shot("login-03-dock-filled");
+check("clicking a demo-account row fills the email field", filledEmail.length > 0, filledEmail);
+await shot("login-02-list-filled");
 
 console.log("\n=== SUBMIT QUESTION: toast + form-clear after real completion ===");
 await evalJs(`localStorage.clear()`);
