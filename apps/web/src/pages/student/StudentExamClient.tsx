@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ChevronLeft, ChevronRight, Flag, LogOut, Timer, X } from "lucide-react";
+import { Camera, CheckCircle2, ChevronLeft, ChevronRight, Flag, LogOut, RotateCcw, Timer, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context.js";
 import { api, ApiError } from "@/lib/api.js";
 import { Button } from "@/components/ui/button.js";
@@ -8,6 +8,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Badge } from "@/components/ui/badge.js";
 import { Brand } from "@/components/ui/brand.js";
 import { ErrorState } from "@/components/ui/empty-state.js";
+import { Field, Input } from "@/components/ui/input.js";
 import { LoadingLine } from "@/components/ui/loading.js";
 import { HashValue } from "@/components/ui/mono.js";
 import { cn } from "@/lib/utils.js";
@@ -50,16 +51,32 @@ export default function StudentExamClient() {
   const [busy, setBusy] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ chainTxHash: string } | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [needsEnrollment, setNeedsEnrollment] = useState(false);
+
+  // ── Self-enrollment (moved here from the Center portal, 2026-07-30) ──────
+  const [enrollAppId, setEnrollAppId] = useState("");
+  const [enrollPaperId, setEnrollPaperId] = useState("");
+  const [enrollError, setEnrollError] = useState<string | null>(null);
+  const [enrollBusy, setEnrollBusy] = useState(false);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    // Release the camera on unmount regardless of which screen we leave from.
+    return () => streamRef.current?.getTracks().forEach((t) => t.stop());
   }, []);
 
   const loadSession = async () => {
     try {
       const s = await api<SessionView>("/student/exam/session");
       setSession(s);
+      setNeedsEnrollment(false);
       if (s.status === "IN_PROGRESS") {
         const qs = await api<Question[]>(`/student/exam/questions?sessionId=${s.sessionId}`);
         setQuestions(qs);
@@ -73,12 +90,70 @@ export default function StudentExamClient() {
         );
       }
     } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setNeedsEnrollment(true);
+        return;
+      }
       setError(err instanceof ApiError ? err.message : String(err));
     }
   };
   useEffect(() => {
     loadSession();
   }, []);
+
+  async function startCamera() {
+    setEnrollError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      streamRef.current = stream;
+      setCameraActive(true);
+      // The <video> element only mounts once cameraActive is true, so attach
+      // the stream on the next tick once the ref is actually available.
+      setTimeout(() => {
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      }, 0);
+    } catch {
+      setEnrollError("Couldn't access the camera — check your browser's camera permission for this site.");
+    }
+  }
+
+  function capturePhoto() {
+    const video = videoRef.current;
+    if (!video) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, 0);
+    setPhotoDataUrl(canvas.toDataURL("image/jpeg", 0.85));
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setCameraActive(false);
+  }
+
+  function retakePhoto() {
+    setPhotoDataUrl(null);
+    startCamera();
+  }
+
+  async function onEnrollSubmit() {
+    setEnrollError(null);
+    setEnrollBusy(true);
+    try {
+      await api("/student/exam/enroll", {
+        method: "POST",
+        body: JSON.stringify({
+          applicationId: enrollAppId,
+          paperId: enrollPaperId,
+          photoDataUrl: photoDataUrl ?? undefined,
+        }),
+      });
+      await loadSession();
+    } catch (err) {
+      setEnrollError(err instanceof ApiError ? err.message : String(err));
+    } finally {
+      setEnrollBusy(false);
+    }
+  }
 
   const remainingSeconds = useMemo(() => {
     if (!session) return 0;
@@ -195,6 +270,99 @@ export default function StudentExamClient() {
               </Link>
               , without needing an account or trusting this platform.
             </p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------- Self-enrollment ---------- */
+  if (needsEnrollment) {
+    return (
+      <div className="min-h-screen">
+        {examChrome()}
+        <div className="mx-auto max-w-lg px-5 py-16">
+          <Card>
+            <CardHeader>
+              <CardTitle>Enroll for an exam</CardTitle>
+              <CardDescription>
+                You don&apos;t have an active exam session yet. Enter your Application ID and the
+                Paper ID for today&apos;s session — this binds it to your account.
+              </CardDescription>
+            </CardHeader>
+            <div className="space-y-3">
+              <Field label="Application ID">
+                <Input
+                  value={enrollAppId}
+                  onChange={(e) => setEnrollAppId(e.target.value)}
+                  placeholder="e.g. APP-000123"
+                  className="font-mono text-xs"
+                />
+              </Field>
+              <Field label="Paper ID">
+                <Input
+                  value={enrollPaperId}
+                  onChange={(e) => setEnrollPaperId(e.target.value)}
+                  placeholder="Given to you by your center or admin"
+                  className="font-mono text-xs"
+                />
+              </Field>
+
+              <div className="rounded-md border border-border bg-background/40 p-3">
+                <p className="ui-label mb-2">Identity photo (optional, for now)</p>
+                {photoDataUrl ? (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={photoDataUrl}
+                      alt="Captured identity"
+                      className="h-20 w-20 rounded-md border border-border object-cover"
+                    />
+                    <Button variant="outline" size="sm" onClick={retakePhoto}>
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Retake
+                    </Button>
+                  </div>
+                ) : cameraActive ? (
+                  <div className="space-y-2">
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full max-w-xs rounded-md border border-border"
+                    />
+                    <Button size="sm" onClick={capturePhoto}>
+                      <Camera className="h-3.5 w-3.5" />
+                      Capture photo
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={startCamera}>
+                    <Camera className="h-3.5 w-3.5" />
+                    Enable camera
+                  </Button>
+                )}
+                <p className="mt-2 text-2xs leading-relaxed text-muted-foreground">
+                  A placeholder for a real identity check — see the platform&apos;s future-scale
+                  plan. Any photo is accepted for this demo; enrolling without one is fine too.
+                </p>
+              </div>
+
+              {enrollError ? (
+                <p className="rounded-md border border-danger/30 bg-danger/[0.07] px-3 py-2 text-xs text-danger">
+                  {enrollError}
+                </p>
+              ) : null}
+
+              <Button
+                className="w-full"
+                disabled={enrollBusy || !enrollAppId || !enrollPaperId}
+                onClick={onEnrollSubmit}
+              >
+                {enrollBusy ? "Enrolling…" : "Enroll"}
+              </Button>
+            </div>
           </Card>
         </div>
       </div>

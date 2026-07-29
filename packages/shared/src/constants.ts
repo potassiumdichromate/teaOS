@@ -20,10 +20,30 @@ export const ZG_NETWORKS = {
 export const MIDEN_NETWORK = "testnet" as const;
 
 export const AI_VALIDATION_THRESHOLDS = {
-  maxDuplicatePct: 35,
+  // Raised from 35 to 80 (2026-07-30) — 35 was rejecting far too much
+  // legitimate content (common textbook-style questions naturally overlap
+  // with what's already in the bank). Duplication is no longer purely a
+  // gate: an accepted question keeps its measured duplicatePct, tagged into
+  // a DUPLICATION_LEVEL band below, so a blueprint's chapter allocation can
+  // still choose to draw only from LOW-duplication questions when it wants
+  // a stricter pool, without blocking everything above 35% at intake time.
+  maxDuplicatePct: 80,
   maxBiasFlags: 0,
   maxGrammarIssues: 3,
 } as const;
+
+/** Upper bound (inclusive) of measured duplicatePct for each duplication tag. */
+export const DUPLICATION_LEVEL_MAX_PCT = {
+  LOW: 30,
+  MEDIUM: 60,
+  HIGH: 80,
+} as const;
+
+export function duplicationLevelFor(duplicatePct: number): "LOW" | "MEDIUM" | "HIGH" {
+  if (duplicatePct <= DUPLICATION_LEVEL_MAX_PCT.LOW) return "LOW";
+  if (duplicatePct <= DUPLICATION_LEVEL_MAX_PCT.MEDIUM) return "MEDIUM";
+  return "HIGH";
+}
 
 export const REGISTRY_CONTRACT_NAMES = [
   "QuestionRegistry",

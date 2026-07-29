@@ -12,6 +12,7 @@ interface VerifyResponse {
   storageProofValid: boolean;
   chainTxValid: boolean;
   overallVerified: boolean;
+  photoDataUrl?: string;
   details: {
     submissionChainTx?: string;
     resultChainTx?: string;
@@ -81,6 +82,15 @@ export default function Verify() {
             </div>
             {result.identityMatch && (
               <div className="space-y-2">
+                {result.photoDataUrl && (
+                  <div className="flex justify-center pb-2">
+                    <img
+                      src={result.photoDataUrl}
+                      alt="Candidate"
+                      className="h-24 w-24 rounded-md border border-border object-cover"
+                    />
+                  </div>
+                )}
                 {CHECKS.filter((c) => c.key !== "identityMatch").map((c) => (
                   <div key={c.key} className="flex items-start justify-between gap-4 text-sm">
                     <div>

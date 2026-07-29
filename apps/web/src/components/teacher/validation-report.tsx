@@ -1,4 +1,5 @@
-import { AI_VALIDATION_THRESHOLDS } from "@nvei/shared";
+import type { ReactNode } from "react";
+import { AI_VALIDATION_THRESHOLDS, duplicationLevelFor } from "@nvei/shared";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge.js";
 import { KeyValueList } from "@/components/ui/table.js";
@@ -33,7 +34,7 @@ function ThresholdRow({
   breached,
   detail,
 }: {
-  label: string;
+  label: ReactNode;
   measured: string;
   limit: string;
   breached: boolean;
@@ -70,23 +71,35 @@ function ThresholdRow({
  * between the just-submitted outcome view (SubmitQuestion.tsx) and the
  * per-item detail view (QuestionHistory.tsx) so the two never drift apart.
  */
+const DUPLICATION_TAG_TONE: Record<string, "success" | "pending" | "warning"> = {
+  LOW: "success",
+  MEDIUM: "pending",
+  HIGH: "warning",
+};
+
 export function ValidationReportDetail({ report }: { report: AIValidationReport }) {
   const duplicateBreached = report.duplicatePct > AI_VALIDATION_THRESHOLDS.maxDuplicatePct;
   const biasBreached = report.biasFlags.length > AI_VALIDATION_THRESHOLDS.maxBiasFlags;
   const grammarBreached = report.grammarIssues.length > AI_VALIDATION_THRESHOLDS.maxGrammarIssues;
+  const duplicationLevel = duplicationLevelFor(report.duplicatePct);
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <ThresholdRow
-          label="Duplicate similarity"
+          label={
+            <span className="flex items-center gap-2">
+              Duplicate similarity
+              <Badge tone={DUPLICATION_TAG_TONE[duplicationLevel]}>{duplicationLevel}</Badge>
+            </span>
+          }
           measured={`${report.duplicatePct}%`}
           limit={`${AI_VALIDATION_THRESHOLDS.maxDuplicatePct}%`}
           breached={duplicateBreached}
           detail={
             report.similarQuestionIds.length > 0
-              ? `Closest match${report.similarQuestionIds.length === 1 ? "" : "es"}: ${report.similarQuestionIds.length} question(s) already in the bank.`
-              : undefined
+              ? `Closest match${report.similarQuestionIds.length === 1 ? "" : "es"}: ${report.similarQuestionIds.length} question(s) already in the bank. A blueprint can cap which duplication level it draws from.`
+              : "A blueprint can cap which duplication level it draws from when selecting questions."
           }
         />
         <ThresholdRow

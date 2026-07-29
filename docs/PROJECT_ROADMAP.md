@@ -12,6 +12,7 @@ Companion to [knowledge_base.md](../knowledge_base.md) §12 (Pending Tasks) and 
 - NTA Admin Overview dashboard, real aggregations and live health checks (§11h).
 - Explainer/landing site (§11i) and the investor one-pager (`pitch/`, deployed to Vercel).
 - Miden → drand/tlock migration for the paper-key timelock (§11o-§11p) and Miden retirement from submission-commitment (§11q) — both proven live on real mainnet infra, `contracts/miden/bridge/` kept dormant per instruction.
+- **Candidate self-enrollment** (2026-07-30) — moved off the Center portal onto the Student portal (`§11z-iv`); a center's remaining job is machine heartbeat + release authorization only. Includes demo-grade camera photo capture at enrollment (no real face-matching yet — see `docs/future-scale-implementation.md`) and a raised, tagged duplicate-similarity threshold (`§11z-iv`).
 - **This session (2026-07-28, backend completion pass)**:
   - Real, read-only **Observer role** (auditor/reviewer account type) — schema, auth, dedicated route file, proven live against real mainnet data.
   - **Confidential Compute Dashboard** and **0G Storage Explorer** wired for real (were honest 501 stubs) — the storage-proof endpoint performs an actual Merkle-verified download against the live mainnet indexer.

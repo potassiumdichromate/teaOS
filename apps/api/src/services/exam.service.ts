@@ -5,13 +5,22 @@
 // drand round has been emitted), Paper.status can never reach READY, so
 // startExam() below will correctly and honestly refuse to start any exam —
 // that's the architecture working as intended, not a bug to route around.
+import { randomBytes } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
 import { sessionRepository } from "../repositories/session.repository.js";
 import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { chainAnchorRepository } from "../repositories/chainAnchor.repository.js";
 import { downloadVerified, uploadEncrypted } from "../lib/zg-storage.js";
 import { zgChain, toBytes32Id } from "../lib/zg-chain.js";
-import { decrypt, deriveSessionKey, encrypt, packEncryptedPayload, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
+import {
+  decrypt,
+  deriveSessionKey,
+  deriveStudentPhotoKey,
+  encrypt,
+  packEncryptedPayload,
+  sha256Hex,
+  unpackEncryptedPayload,
+} from "../lib/crypto.js";
 import { seededShuffle } from "../lib/shuffle.js";
 import { unsealContentKey } from "../lib/timelock.js";
 import { redisConnection } from "../workers/queues.js";
@@ -62,6 +71,58 @@ export async function getSessionView(userId: string) {
     questionCount: session.paper.paperQuestions.length,
     startedAt: session.startedAt,
   };
+}
+
+/**
+ * Self-enrollment: moved here (2026-07-30) from center.service.ts's old
+ * enrollStudent — a center operator no longer creates the session. The
+ * student does, from their own portal, which is why applicationId is
+ * re-checked against the caller's own profile below (not just "does this
+ * applicationId exist anywhere") — otherwise any logged-in student could
+ * enroll on behalf of a different candidate's applicationId. The optional
+ * photo is a demo-grade identity capture only; see
+ * docs/future-scale-implementation.md for the real face-verification plan
+ * this stands in for.
+ */
+export async function enrollSelf(
+  userId: string,
+  args: { applicationId: string; paperId: string; photoDataUrl?: string },
+) {
+  const profile = await studentProfileFor(userId);
+  if (args.applicationId !== profile.applicationId) {
+    throw new HttpError(403, "That Application ID doesn't match your account");
+  }
+
+  const paper = await prisma.paper.findUnique({ where: { id: args.paperId } });
+  if (!paper) throw new HttpError(404, "Paper not found");
+
+  const existing = await prisma.studentExamSession.findUnique({
+    where: { studentId_paperId: { studentId: profile.id, paperId: args.paperId } },
+  });
+  if (existing) throw new HttpError(409, "You're already enrolled for this paper");
+
+  if (args.photoDataUrl) {
+    const base64 = args.photoDataUrl.replace(/^data:image\/\w+;base64,/, "");
+    const raw = Buffer.from(base64, "base64");
+    const key = deriveStudentPhotoKey(profile.applicationId);
+    const packed = packEncryptedPayload(encrypt(raw, key));
+    const upload = await uploadEncrypted(packed);
+    await prisma.studentProfile.update({
+      where: { id: profile.id },
+      data: { photoStorageRoot: upload.rootHash },
+    });
+  }
+
+  const session = await sessionRepository.create({
+    studentId: profile.id,
+    paperId: args.paperId,
+    randomizationSeed: randomBytes(16).toString("hex"),
+  });
+  await auditLogRepository.write("STUDENT_SELF_ENROLLED", {
+    userId,
+    metadata: { sessionId: session.id, applicationId: args.applicationId },
+  });
+  return session;
 }
 
 export async function startExam(userId: string, sessionId: string): Promise<RedactedQuestion[]> {

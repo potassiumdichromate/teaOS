@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, KeyRound, MonitorCheck, UserPlus } from "lucide-react";
+import { CheckCircle2, KeyRound, MonitorCheck } from "lucide-react";
 import { api, ApiError } from "@/lib/api.js";
 import { AppShell, type NavItem } from "@/components/ui/app-shell.js";
 import { Button } from "@/components/ui/button.js";
@@ -34,7 +34,6 @@ interface Authorization {
 const NAV: NavItem[] = [
   { anchor: "machines", label: "Machines", icon: MonitorCheck },
   { anchor: "authorization", label: "Release authorization", icon: KeyRound },
-  { anchor: "enrolment", label: "Candidate enrolment", icon: UserPlus },
 ];
 
 const PC_COLUMNS: Column<ExamPC>[] = [
@@ -68,8 +67,7 @@ export default function CenterHome() {
   const [machineCode, setMachineCode] = useState("PC-01");
   const [paperId, setPaperId] = useState("");
   const [auth, setAuth] = useState<Authorization | null>(null);
-  const [applicationId, setApplicationId] = useState("");
-  const [enrollMsg, setEnrollMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const refresh = () =>
@@ -94,31 +92,12 @@ export default function CenterHome() {
   async function onCheckAuth() {
     if (!paperId) return;
     setBusy(true);
+    setAuthError(null);
     try {
       setAuth(await api<Authorization>(`/center/authorization/${paperId}`));
     } catch (err) {
       setAuth(null);
-      setEnrollMsg({
-        text: err instanceof ApiError ? err.message : String(err),
-        ok: false,
-      });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onEnroll() {
-    setEnrollMsg(null);
-    setBusy(true);
-    try {
-      await api("/center/sessions", {
-        method: "POST",
-        body: JSON.stringify({ applicationId, paperId }),
-      });
-      setEnrollMsg({ text: "Candidate enrolled for this paper.", ok: true });
-      await refresh();
-    } catch (err) {
-      setEnrollMsg({ text: err instanceof ApiError ? err.message : String(err), ok: false });
+      setAuthError(err instanceof ApiError ? err.message : String(err));
     } finally {
       setBusy(false);
     }
@@ -128,7 +107,7 @@ export default function CenterHome() {
     <AppShell role="CENTER" nav={NAV}>
       <PageHeader
         title={dashboard ? dashboard.name : "Examination center"}
-        description="Machine readiness, release authorization, and candidate enrolment for this center."
+        description="Machine readiness and release authorization for this center. Candidates enroll themselves from their own portal."
         actions={
           dashboard ? (
             <span className="rounded-md border border-border bg-muted/40 px-2.5 py-1 font-mono text-xs text-muted-foreground">
@@ -200,7 +179,7 @@ export default function CenterHome() {
             </Card>
           </section>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          <div className="mt-8 max-w-xl">
             <section id="authorization" className="scroll-mt-6">
               <SectionHeading title="Release authorization" />
               <Card>
@@ -209,7 +188,9 @@ export default function CenterHome() {
                   <CardDescription>
                     Authorization is gated on the paper&apos;s real drand/tlock timelock — the
                     content key cannot be unsealed before the exam window opens, and no toggle in
-                    this portal (or anywhere else) overrides that.
+                    this portal (or anywhere else) overrides that. Candidates enroll themselves
+                    from their own portal — this center's job is machine readiness and this check
+                    only.
                   </CardDescription>
                 </CardHeader>
                 <div className="space-y-3">
@@ -219,6 +200,7 @@ export default function CenterHome() {
                       onChange={(e) => {
                         setPaperId(e.target.value);
                         setAuth(null);
+                        setAuthError(null);
                       }}
                       placeholder="Paste the paper ID for today's session"
                       className="font-mono text-xs"
@@ -252,50 +234,9 @@ export default function CenterHome() {
                       </p>
                     </div>
                   ) : null}
-                </div>
-              </Card>
-            </section>
-
-            <section id="enrolment" className="scroll-mt-6">
-              <SectionHeading title="Candidate enrolment" />
-              <Card>
-                <CardHeader>
-                  <CardTitle>Enrol a candidate</CardTitle>
-                  <CardDescription>
-                    Creates the exam session that binds this candidate to the paper entered on the
-                    left. A candidate can only be enrolled once per paper.
-                  </CardDescription>
-                </CardHeader>
-                <div className="space-y-3">
-                  <Field label="Application ID">
-                    <Input
-                      value={applicationId}
-                      onChange={(e) => setApplicationId(e.target.value)}
-                      placeholder="e.g. APP-000123"
-                      className="font-mono text-xs"
-                    />
-                  </Field>
-                  <Button
-                    className="w-full"
-                    onClick={onEnroll}
-                    disabled={busy || !applicationId || !paperId}
-                  >
-                    Enrol for the paper above
-                  </Button>
-                  {!paperId ? (
-                    <p className="text-xs text-muted-foreground">
-                      Enter a paper ID under Release authorization first.
-                    </p>
-                  ) : null}
-                  {enrollMsg ? (
-                    <p
-                      className={
-                        enrollMsg.ok
-                          ? "rounded-md border border-success/30 bg-success/[0.07] px-3 py-2 text-xs text-success"
-                          : "rounded-md border border-danger/30 bg-danger/[0.07] px-3 py-2 text-xs text-danger"
-                      }
-                    >
-                      {enrollMsg.text}
+                  {authError ? (
+                    <p className="rounded-md border border-danger/30 bg-danger/[0.07] px-3 py-2 text-xs text-danger">
+                      {authError}
                     </p>
                   ) : null}
                 </div>

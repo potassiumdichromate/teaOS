@@ -79,6 +79,9 @@ model StudentProfile {
   applicationId String   @unique
   fullName      String
   dob           DateTime
+  photoStorageRoot String? // demo-grade identity photo (0G Storage root, encrypted) captured at
+                            // self-enrollment; see docs/future-scale-implementation.md for the
+                            // real face-verification plan this stands in for.
   sessions      StudentExamSession[]
   results       EvaluationResult[]
 }
@@ -142,6 +145,16 @@ enum QuestionStatus {
   VALIDATING
   ACCEPTED
   REJECTED
+}
+
+// Duplication tag on an accepted question's AIValidationReport.duplicatePct
+// (band boundaries in packages/shared/src/constants.ts's
+// DUPLICATION_LEVEL_MAX_PCT) — a blueprint's chapter allocation can cap
+// which band it draws from via maxDuplicationLevel below.
+enum DuplicationLevel {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 // Plaintext question content NEVER lives in Postgres once ACCEPTED — only
@@ -243,6 +256,7 @@ model BlueprintChapterAllocation {
   chapterId     String
   chapter       Chapter   @relation(fields: [chapterId], references: [id])
   difficultyPct Json      // { EASY: 40, MEDIUM: 40, HARD: 20 }
+  maxDuplicationLevel DuplicationLevel @default(HIGH) // caps which duplication-tagged questions this allocation draws from
   questionCount Int
 
   @@unique([blueprintId, chapterId])
@@ -320,8 +334,12 @@ model StudentExamSession {
   student           StudentProfile @relation(fields: [studentId], references: [id])
   paperId           String
   paper             Paper         @relation(fields: [paperId], references: [id])
-  centerId          String
-  center            CenterProfile @relation(fields: [centerId], references: [id])
+  // Nullable since 2026-07-30: enrollment moved to the student's own portal
+  // (self-enrollment, no center staff step), so there's no longer a center
+  // present at enrollment time to record. Kept for any future flow that
+  // does know the physical center (e.g. a real biometric check-in kiosk).
+  centerId          String?
+  center            CenterProfile? @relation(fields: [centerId], references: [id])
 
   randomizationSeed String        // deterministic per-student question/option order
   status            SessionStatus @default(NOT_STARTED)
@@ -392,6 +410,7 @@ enum AuditAction {
   PAPER_GENERATION
   CENTER_AUTHENTICATION
   STUDENT_LOGIN
+  STUDENT_SELF_ENROLLED
   ANSWER_SUBMISSION
   EVALUATION
   RANKING_PUBLICATION

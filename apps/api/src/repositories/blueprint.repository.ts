@@ -15,6 +15,7 @@ export const blueprintRepository = {
             chapterId: c.chapterId,
             difficultyPct: c.difficultyPct,
             questionCount: c.questionCount,
+            maxDuplicationLevel: c.maxDuplicationLevel,
           })),
         },
       },

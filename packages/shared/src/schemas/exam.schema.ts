@@ -1,10 +1,17 @@
 import { z } from "zod";
 
-export const enrollStudentSchema = z.object({
+// Self-enrollment: the student binds themselves to a paper, in their own
+// portal — no center staff involved (see knowledge_base.md on the
+// 2026-07-30 move away from center-operated enrollment). The service layer
+// additionally checks applicationId matches the caller's own profile.
+export const selfEnrollSchema = z.object({
   applicationId: z.string().min(1),
   paperId: z.string().cuid(),
+  // Demo-grade identity photo, captured client-side (camera or file input)
+  // as a data URL. No real face-matching yet — see docs/future-scale-implementation.md.
+  photoDataUrl: z.string().optional(),
 });
-export type EnrollStudentInput = z.infer<typeof enrollStudentSchema>;
+export type SelfEnrollInput = z.infer<typeof selfEnrollSchema>;
 
 export const autosaveAnswerSchema = z.object({
   questionId: z.string().cuid(),
@@ -35,6 +42,10 @@ export const verifyResponseSchema = z.object({
   storageProofValid: z.boolean(),
   chainTxValid: z.boolean(),
   overallVerified: z.boolean(),
+  // Demo-grade candidate photo (see docs/future-scale-implementation.md),
+  // shown alongside a verified result — absent if the candidate never
+  // captured one at enrollment, or identity didn't match.
+  photoDataUrl: z.string().optional(),
   details: z.object({
     submissionChainTx: z.string().optional(),
     resultChainTx: z.string().optional(),

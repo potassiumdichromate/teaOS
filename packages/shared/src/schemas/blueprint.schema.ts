@@ -11,6 +11,11 @@ export const blueprintChapterAllocationSchema = z.object({
   difficultyPct: z.object({ EASY: z.number(), MEDIUM: z.number(), HARD: z.number() })
     .refine((v) => v.EASY + v.MEDIUM + v.HARD === 100, { message: "Difficulty % must sum to 100" }),
   questionCount: z.number().int().positive(),
+  // Caps which duplication-tagged questions this allocation can draw from —
+  // "HIGH" (default) means no extra restriction beyond the intake threshold
+  // itself (AI_VALIDATION_THRESHOLDS.maxDuplicatePct); "LOW"/"MEDIUM" let a
+  // blueprint demand a stricter pool for a higher-stakes paper.
+  maxDuplicationLevel: z.enum(["LOW", "MEDIUM", "HIGH"]).default("HIGH"),
 });
 
 export const createBlueprintSchema = z.object({

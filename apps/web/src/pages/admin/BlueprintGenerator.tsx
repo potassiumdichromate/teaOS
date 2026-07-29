@@ -24,11 +24,13 @@ interface SubjectAllocRow {
   questionCount: number;
   marksEach: number;
 }
+type DuplicationLevel = "LOW" | "MEDIUM" | "HIGH";
 interface ChapterAllocRow {
   chapterId: string;
   questionCount: number;
   easy: number;
   medium: number;
+  maxDuplicationLevel: DuplicationLevel;
 }
 interface BlueprintRow {
   id: string;
@@ -80,6 +82,7 @@ export default function BlueprintGenerator() {
             chapterId: r.chapterId,
             questionCount: r.questionCount,
             difficultyPct: { EASY: r.easy, MEDIUM: r.medium, HARD: 100 - r.easy - r.medium },
+            maxDuplicationLevel: r.maxDuplicationLevel,
           })),
         }),
       });
@@ -266,7 +269,7 @@ export default function BlueprintGenerator() {
               <div className="flex items-center justify-between gap-3">
                 <Label>Chapter allocations</Label>
                 <span className="font-mono text-2xs text-muted-foreground">
-                  chapter · count · easy% · medium% · hard%
+                  chapter · count · easy% · medium% · hard% · max duplication
                 </span>
               </div>
               {chapterRows.length === 0 ? (
@@ -344,6 +347,25 @@ export default function BlueprintGenerator() {
                     >
                       {hard}% hard
                     </span>
+                    <Select
+                      aria-label="Max duplication level"
+                      title="Only draw questions tagged at or below this duplication level"
+                      value={row.maxDuplicationLevel}
+                      onChange={(e) =>
+                        setChapterRows(
+                          chapterRows.map((r, j) =>
+                            j === i
+                              ? { ...r, maxDuplicationLevel: e.target.value as DuplicationLevel }
+                              : r,
+                          ),
+                        )
+                      }
+                      className="w-28 shrink-0"
+                    >
+                      <option value="LOW">Low dup.</option>
+                      <option value="MEDIUM">Medium dup.</option>
+                      <option value="HIGH">High dup.</option>
+                    </Select>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -366,7 +388,7 @@ export default function BlueprintGenerator() {
                 onClick={() =>
                   setChapterRows([
                     ...chapterRows,
-                    { chapterId: "", questionCount: 5, easy: 40, medium: 40 },
+                    { chapterId: "", questionCount: 5, easy: 40, medium: 40, maxDuplicationLevel: "HIGH" },
                   ])
                 }
               >

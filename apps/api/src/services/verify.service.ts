@@ -8,9 +8,28 @@ import { sessionRepository } from "../repositories/session.repository.js";
 import { chainAnchorRepository } from "../repositories/chainAnchor.repository.js";
 import { downloadVerified } from "../lib/zg-storage.js";
 import { verifyTransaction, getSubmissionAnchor } from "../lib/zg-chain.js";
-import { decrypt, deriveSessionKey, sha256Hex, unpackEncryptedPayload } from "../lib/crypto.js";
+import {
+  decrypt,
+  deriveSessionKey,
+  deriveStudentPhotoKey,
+  sha256Hex,
+  unpackEncryptedPayload,
+} from "../lib/crypto.js";
 import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { logger } from "../lib/logger.js";
+
+/** Best-effort demo-grade photo fetch — never let a storage hiccup break verification itself. */
+async function fetchCandidatePhoto(applicationId: string, photoStorageRoot: string): Promise<string | undefined> {
+  try {
+    const packed = await downloadVerified(photoStorageRoot);
+    const key = deriveStudentPhotoKey(applicationId);
+    const raw = decrypt(unpackEncryptedPayload(packed), key);
+    return `data:image/jpeg;base64,${raw.toString("base64")}`;
+  } catch (err) {
+    logger.warn({ applicationId, err }, "Candidate photo fetch/decrypt failed during verification — omitting");
+    return undefined;
+  }
+}
 
 function isSameCalendarDate(a: Date, b: Date): boolean {
   return a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);
@@ -39,10 +58,14 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     return empty;
   }
 
+  const photoDataUrl = student.photoStorageRoot
+    ? await fetchCandidatePhoto(applicationId, student.photoStorageRoot)
+    : undefined;
+
   const session = await sessionRepository.findLatestEvaluatedForStudent(student.id);
   if (!session || !session.result) {
     await auditLogRepository.write("VERIFICATION_CHECK", { metadata: { applicationId, result: "NO_EVALUATED_SESSION" } });
-    return { ...empty, identityMatch: true };
+    return { ...empty, identityMatch: true, photoDataUrl };
   }
 
   const details: VerifyResponse["details"] = {
@@ -124,6 +147,7 @@ export async function verifyStudentResult(applicationId: string, dobIso: string)
     storageProofValid,
     chainTxValid,
     overallVerified,
+    photoDataUrl,
     details,
   };
 }

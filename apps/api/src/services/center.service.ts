@@ -1,9 +1,7 @@
-import { randomBytes } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
 import { examPCRepository } from "../repositories/examPC.repository.js";
 import { sessionRepository } from "../repositories/session.repository.js";
 import { paperRepository } from "../repositories/paper.repository.js";
-import { auditLogRepository } from "../repositories/auditLog.repository.js";
 import { HttpError } from "../middleware/error.middleware.js";
 
 async function centerProfileFor(userId: string) {
@@ -47,27 +45,4 @@ export async function checkAuthorization(paperId: string) {
         ? "Paper is not READY — the tlock key-timelock step hasn't completed (see lib/timelock.ts)"
         : "Outside the exam time window",
   };
-}
-
-export async function enrollStudent(userId: string, args: { applicationId: string; paperId: string }) {
-  const profile = await centerProfileFor(userId);
-  const student = await prisma.studentProfile.findUnique({ where: { applicationId: args.applicationId } });
-  if (!student) throw new HttpError(404, `No student with applicationId ${args.applicationId}`);
-
-  const existing = await prisma.studentExamSession.findUnique({
-    where: { studentId_paperId: { studentId: student.id, paperId: args.paperId } },
-  });
-  if (existing) throw new HttpError(409, "Student already enrolled for this paper");
-
-  const session = await sessionRepository.create({
-    studentId: student.id,
-    paperId: args.paperId,
-    centerId: profile.id,
-    randomizationSeed: randomBytes(16).toString("hex"),
-  });
-  await auditLogRepository.write("CENTER_AUTHENTICATION", {
-    userId,
-    metadata: { event: "student_enrolled", sessionId: session.id, applicationId: args.applicationId },
-  });
-  return session;
 }

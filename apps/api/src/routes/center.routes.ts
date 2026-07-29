@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { enrollStudentSchema } from "@nvei/shared";
 import { requireAuth, requireRole } from "../middleware/auth.middleware.js";
 import * as centerService from "../services/center.service.js";
 
@@ -31,15 +30,6 @@ centerRoutes.post("/pcs/:id/heartbeat", async (req, res, next) => {
 centerRoutes.get("/authorization/:paperId", async (req, res, next) => {
   try {
     res.json(await centerService.checkAuthorization(req.params.paperId));
-  } catch (err) {
-    next(err);
-  }
-});
-
-centerRoutes.post("/sessions", async (req, res, next) => {
-  try {
-    const input = enrollStudentSchema.parse(req.body);
-    res.status(201).json(await centerService.enrollStudent(req.auth!.userId, input));
   } catch (err) {
     next(err);
   }

@@ -74,3 +74,15 @@ export function deriveSessionKey(sessionId: string): Buffer {
   const derived = hkdfSync("sha256", masterKey, Buffer.alloc(0), Buffer.from(`session:${sessionId}`), 32);
   return Buffer.from(derived);
 }
+
+/**
+ * Same derive-don't-store pattern, namespaced for a candidate's demo-grade
+ * identity photo (see docs/future-scale-implementation.md) — keyed by
+ * applicationId rather than a session, since a photo is a per-candidate
+ * identity attribute, not tied to any one exam sitting.
+ */
+export function deriveStudentPhotoKey(applicationId: string): Buffer {
+  const masterKey = Buffer.from(env.QUESTION_BANK_MASTER_KEY, "hex");
+  const derived = hkdfSync("sha256", masterKey, Buffer.alloc(0), Buffer.from(`photo:${applicationId}`), 32);
+  return Buffer.from(derived);
+}

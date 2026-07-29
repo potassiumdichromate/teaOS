@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import type { Difficulty } from "@nvei/shared";
+import { DUPLICATION_LEVEL_MAX_PCT, type Difficulty, type DuplicationLevel } from "@nvei/shared";
 
 interface SelectedQuestion {
   questionId: string;
@@ -37,6 +37,8 @@ export async function selectQuestionsForBlueprint(blueprintId: string): Promise<
     };
 
     const marks = marksBySubject.get(allocation.chapter.subjectId) ?? 1;
+    const maxDuplicatePct =
+      DUPLICATION_LEVEL_MAX_PCT[(allocation.maxDuplicationLevel as DuplicationLevel) ?? "HIGH"];
 
     for (const difficulty of ["EASY", "MEDIUM", "HARD"] as const) {
       const count = counts[difficulty];
@@ -45,7 +47,7 @@ export async function selectQuestionsForBlueprint(blueprintId: string): Promise<
         where: {
           chapterId: allocation.chapterId,
           status: "ACCEPTED",
-          aiReport: { difficultyPredicted: difficulty },
+          aiReport: { difficultyPredicted: difficulty, duplicatePct: { lte: maxDuplicatePct } },
         },
         take: count,
         orderBy: { createdAt: "asc" },

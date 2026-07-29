@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 
 export const sessionRepository = {
-  create: (args: { studentId: string; paperId: string; centerId: string; randomizationSeed: string }) =>
+  create: (args: { studentId: string; paperId: string; centerId?: string; randomizationSeed: string }) =>
     prisma.studentExamSession.create({ data: { ...args, status: "NOT_STARTED" } }),
 
   countForCenter: (centerId: string) => prisma.studentExamSession.count({ where: { centerId } }),

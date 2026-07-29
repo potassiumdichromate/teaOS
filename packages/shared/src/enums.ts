@@ -38,6 +38,10 @@ export const SessionStatus = [
 ] as const;
 export type SessionStatus = (typeof SessionStatus)[number];
 
+/** Duplication tag on an accepted question (band around its measured duplicatePct) — see constants.ts's DUPLICATION_LEVEL_MAX_PCT. */
+export const DuplicationLevel = ["LOW", "MEDIUM", "HIGH"] as const;
+export type DuplicationLevel = (typeof DuplicationLevel)[number];
+
 export const AuditAction = [
   "TEACHER_LOGIN",
   "ADMIN_LOGIN",
@@ -50,6 +54,7 @@ export const AuditAction = [
   "PAPER_GENERATION",
   "CENTER_AUTHENTICATION",
   "STUDENT_LOGIN",
+  "STUDENT_SELF_ENROLLED",
   "ANSWER_SUBMISSION",
   "EVALUATION",
   "RANKING_PUBLICATION",

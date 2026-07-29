@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { autosaveAnswerSchema } from "@nvei/shared";
+import { autosaveAnswerSchema, selfEnrollSchema } from "@nvei/shared";
 import { requireAuth, requireRole } from "../middleware/auth.middleware.js";
 import * as examService from "../services/exam.service.js";
 
@@ -8,6 +8,15 @@ export const studentRoutes = Router();
 // Student login is the same shared /auth/login as every other role (see
 // docs/API_REFERENCE.md) — no separate applicationId-based auth mechanism.
 studentRoutes.use(requireAuth, requireRole("STUDENT"));
+
+studentRoutes.post("/exam/enroll", async (req, res, next) => {
+  try {
+    const input = selfEnrollSchema.parse(req.body);
+    res.status(201).json(await examService.enrollSelf(req.auth!.userId, input));
+  } catch (err) {
+    next(err);
+  }
+});
 
 studentRoutes.get("/exam/session", async (req, res, next) => {
   try {
