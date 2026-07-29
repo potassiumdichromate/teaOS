@@ -23,6 +23,7 @@ interface PaperDetail {
   masterPaperHash: string | null;
   chainTxHash: string | null;
   timelockRef: string | null;
+  failureReason: string | null;
   questionCount: number;
 }
 
@@ -61,7 +62,7 @@ export default function PaperGeneration() {
       while (Date.now() - started < 180_000) {
         const detail = await api<PaperDetail>(`/admin/papers/${paperId}/pipeline`);
         setPaper(detail);
-        if (detail.status === "READY") break;
+        if (detail.status === "READY" || detail.status === "FAILED") break;
         await new Promise((r) => setTimeout(r, 3000));
       }
     } catch (err) {
@@ -71,32 +72,38 @@ export default function PaperGeneration() {
     }
   }
 
+  const failed = paper?.status === "FAILED";
+  // A FAILED pipeline stops wherever it was — the step that was "active" is
+  // the one that actually failed; steps behind it never started.
+  const asFailedIfActive = (state: Step["state"]): Step["state"] =>
+    failed && state === "active" ? "failed" : failed && state === "pending" ? "pending" : state;
+
   const steps: Step[] = paper
     ? [
         {
           key: "select",
           label: "Questions selected",
           detail: `${paper.questionCount} accepted items drawn against the blueprint's allocations.`,
-          state: paper.questionCount > 0 ? "done" : "active",
+          state: asFailedIfActive(paper.questionCount > 0 ? "done" : "active"),
         },
         {
           key: "storage",
           label: "Encrypted into 0G Storage",
           detail: "The assembled paper is encrypted client-side of the storage layer; the root addresses the ciphertext.",
-          state: paper.storageRoot ? "done" : "active",
+          state: asFailedIfActive(paper.storageRoot ? "done" : "active"),
         },
         {
           key: "anchor",
           label: "Anchored on 0G Chain",
           detail: "Master paper hash written to PaperRegistry.",
-          state: paper.chainTxHash ? "done" : paper.storageRoot ? "active" : "pending",
+          state: asFailedIfActive(paper.chainTxHash ? "done" : paper.storageRoot ? "active" : "pending"),
         },
         {
           key: "timelock",
           label: "Content key sealed with drand/tlock",
           detail:
             "The decryption key is time-locked against drand's public randomness beacon — it cannot be unsealed early, including by us.",
-          state: paper.timelockRef ? "done" : paper.chainTxHash ? "active" : "pending",
+          state: asFailedIfActive(paper.timelockRef ? "done" : paper.chainTxHash ? "active" : "pending"),
         },
         {
           key: "ready",
@@ -174,6 +181,14 @@ export default function PaperGeneration() {
           ) : (
             <div className="space-y-5">
               <Stepper steps={steps} />
+              {failed ? (
+                <div className="rounded-md border border-danger/30 bg-danger/[0.07] px-4 py-3">
+                  <p className="text-sm font-medium text-danger">Generation failed</p>
+                  <p className="mt-1 text-xs leading-relaxed text-danger/80">
+                    {paper?.failureReason ?? "The pipeline hit an unrecoverable error."}
+                  </p>
+                </div>
+              ) : null}
               <div className="border-t border-border pt-4">
                 <KeyValueList
                   items={[

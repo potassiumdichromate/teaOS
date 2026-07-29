@@ -16,6 +16,25 @@ import { HttpError } from "../middleware/error.middleware.js";
 import { publish } from "../ws/hub.js";
 
 export async function runPaperGenerationPipeline(paperId: string): Promise<void> {
+  try {
+    await runPipeline(paperId);
+  } catch (err) {
+    // Without this, a thrown error only surfaced as a BullMQ "failed" job —
+    // invisible anywhere in the admin UI, which just polls the Paper row and
+    // saw it stuck at ASSEMBLING forever (found live: 2026-07-29). Recording
+    // the failure on the Paper itself is what lets Paper Generation's polling
+    // loop show a real error instead of spinning until it times out.
+    const failureReason = err instanceof Error ? err.message : String(err);
+    await paperRepository.markFailed(paperId, failureReason).catch(() => {});
+    publish(`paper:${paperId}:status`, { stage: "FAILED", error: failureReason });
+    await auditLogRepository
+      .write("PAPER_GENERATION", { metadata: { paperId, stage: "FAILED", error: failureReason } })
+      .catch(() => {});
+    throw err;
+  }
+}
+
+async function runPipeline(paperId: string): Promise<void> {
   const paper = await paperRepository.findById(paperId);
   if (!paper) throw new HttpError(404, `Paper ${paperId} not found`);
 

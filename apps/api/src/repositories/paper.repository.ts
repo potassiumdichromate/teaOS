@@ -24,4 +24,7 @@ export const paperRepository = {
     prisma.paper.update({ where: { id }, data: { status: "READY", timelockRef } }),
 
   markPending: (id: string) => prisma.paper.update({ where: { id }, data: { status: "PENDING" } }),
+
+  markFailed: (id: string, failureReason: string) =>
+    prisma.paper.update({ where: { id }, data: { status: "FAILED", failureReason } }),
 };

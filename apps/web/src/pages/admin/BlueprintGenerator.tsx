@@ -29,7 +29,6 @@ interface ChapterAllocRow {
   questionCount: number;
   easy: number;
   medium: number;
-  hard: number;
 }
 interface BlueprintRow {
   id: string;
@@ -63,6 +62,7 @@ export default function BlueprintGenerator() {
     (n, r) => n + (r.questionCount || 0) * (r.marksEach || 0),
     0,
   );
+  const hasInvalidDifficultyPct = chapterRows.some((r) => r.easy + r.medium > 100);
 
   async function onCreate() {
     setError(null);
@@ -79,7 +79,7 @@ export default function BlueprintGenerator() {
           chapterAllocations: chapterRows.map((r) => ({
             chapterId: r.chapterId,
             questionCount: r.questionCount,
-            difficultyPct: { EASY: r.easy, MEDIUM: r.medium, HARD: r.hard },
+            difficultyPct: { EASY: r.easy, MEDIUM: r.medium, HARD: 100 - r.easy - r.medium },
           })),
         }),
       });
@@ -266,7 +266,7 @@ export default function BlueprintGenerator() {
               <div className="flex items-center justify-between gap-3">
                 <Label>Chapter allocations</Label>
                 <span className="font-mono text-2xs text-muted-foreground">
-                  chapter · count · easy% · medium%
+                  chapter · count · easy% · medium% · hard%
                 </span>
               </div>
               {chapterRows.length === 0 ? (
@@ -274,79 +274,99 @@ export default function BlueprintGenerator() {
                   No chapter allocation yet — add at least one.
                 </p>
               ) : null}
-              {chapterRows.map((row, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Select
-                    value={row.chapterId}
-                    onChange={(e) =>
-                      setChapterRows(
-                        chapterRows.map((r, j) => (j === i ? { ...r, chapterId: e.target.value } : r)),
-                      )
-                    }
-                    className="flex-[2]"
-                  >
-                    <option value="">Chapter</option>
-                    {allChapters.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <Input
-                    type="number"
-                    aria-label="Question count"
-                    title="Question count"
-                    value={row.questionCount}
-                    onChange={(e) =>
-                      setChapterRows(
-                        chapterRows.map((r, j) =>
-                          j === i ? { ...r, questionCount: +e.target.value } : r,
-                        ),
-                      )
-                    }
-                    className="w-20"
-                  />
-                  <Input
-                    type="number"
-                    aria-label="Easy percent"
-                    title="Easy %"
-                    value={row.easy}
-                    onChange={(e) =>
-                      setChapterRows(
-                        chapterRows.map((r, j) => (j === i ? { ...r, easy: +e.target.value } : r)),
-                      )
-                    }
-                    className="w-20"
-                  />
-                  <Input
-                    type="number"
-                    aria-label="Medium percent"
-                    title="Medium %"
-                    value={row.medium}
-                    onChange={(e) =>
-                      setChapterRows(
-                        chapterRows.map((r, j) => (j === i ? { ...r, medium: +e.target.value } : r)),
-                      )
-                    }
-                    className="w-20"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Remove allocation"
-                    onClick={() => setChapterRows(chapterRows.filter((_, j) => j !== i))}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
+              {chapterRows.map((row, i) => {
+                const hard = 100 - row.easy - row.medium;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <Select
+                      value={row.chapterId}
+                      onChange={(e) =>
+                        setChapterRows(
+                          chapterRows.map((r, j) =>
+                            j === i ? { ...r, chapterId: e.target.value } : r,
+                          ),
+                        )
+                      }
+                      className="flex-[2]"
+                    >
+                      <option value="">Chapter</option>
+                      {allChapters.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <Input
+                      type="number"
+                      aria-label="Question count"
+                      title="Question count"
+                      value={row.questionCount}
+                      onChange={(e) =>
+                        setChapterRows(
+                          chapterRows.map((r, j) =>
+                            j === i ? { ...r, questionCount: +e.target.value } : r,
+                          ),
+                        )
+                      }
+                      className="w-20"
+                    />
+                    <Input
+                      type="number"
+                      aria-label="Easy percent"
+                      title="Easy %"
+                      value={row.easy}
+                      onChange={(e) =>
+                        setChapterRows(
+                          chapterRows.map((r, j) => (j === i ? { ...r, easy: +e.target.value } : r)),
+                        )
+                      }
+                      className="w-20"
+                    />
+                    <Input
+                      type="number"
+                      aria-label="Medium percent"
+                      title="Medium %"
+                      value={row.medium}
+                      onChange={(e) =>
+                        setChapterRows(
+                          chapterRows.map((r, j) =>
+                            j === i ? { ...r, medium: +e.target.value } : r,
+                          ),
+                        )
+                      }
+                      className="w-20"
+                    />
+                    <span
+                      title="Hard % — derived as 100 - easy% - medium%"
+                      className={`w-16 shrink-0 text-right font-mono text-xs tabular-nums ${
+                        hard < 0 ? "text-danger" : "text-muted-foreground"
+                      }`}
+                    >
+                      {hard}% hard
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove allocation"
+                      onClick={() => setChapterRows(chapterRows.filter((_, j) => j !== i))}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                );
+              })}
+              {hasInvalidDifficultyPct ? (
+                <p className="text-xs text-danger">
+                  Easy % + Medium % exceeds 100 on at least one row — hard % would go negative.
+                </p>
+              ) : null}
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() =>
                   setChapterRows([
                     ...chapterRows,
-                    { chapterId: "", questionCount: 5, easy: 40, medium: 40, hard: 20 },
+                    { chapterId: "", questionCount: 5, easy: 40, medium: 40 },
                   ])
                 }
               >
@@ -359,7 +379,13 @@ export default function BlueprintGenerator() {
 
             <Button
               className="w-full"
-              disabled={busy || !title || subjectRows.length === 0 || chapterRows.length === 0}
+              disabled={
+                busy ||
+                !title ||
+                subjectRows.length === 0 ||
+                chapterRows.length === 0 ||
+                hasInvalidDifficultyPct
+              }
               onClick={onCreate}
             >
               {busy ? "Creating…" : "Create blueprint"}

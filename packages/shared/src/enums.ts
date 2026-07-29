@@ -27,7 +27,7 @@ export const QuestionStatus = [
 ] as const;
 export type QuestionStatus = (typeof QuestionStatus)[number];
 
-export const PaperStatus = ["PENDING", "ASSEMBLING", "READY", "LOCKED"] as const;
+export const PaperStatus = ["PENDING", "ASSEMBLING", "READY", "LOCKED", "FAILED"] as const;
 export type PaperStatus = (typeof PaperStatus)[number];
 
 export const SessionStatus = [

@@ -253,6 +253,7 @@ enum PaperStatus {
   ASSEMBLING
   READY
   LOCKED   // exam window closed, key reclaimed / no longer releasable
+  FAILED   // pipeline hit an unrecoverable error (e.g. zero questions matched the blueprint); see failureReason
 }
 
 model Paper {
@@ -266,6 +267,7 @@ model Paper {
   chainTxHash      String?     // 0G Chain PaperRegistry anchor tx
 
   timelockRef      String?     // drand/tlock-sealed content key (armored age ciphertext, see lib/timelock.ts); formerly a Miden P2IDE note id before the 2026-07-28 backend switch, knowledge_base.md §11o
+  failureReason    String?     // set when status=FAILED; human-readable cause (e.g. "no ACCEPTED questions matched blueprint's allocations")
   examStartAt      DateTime
   examWindowCloseAt DateTime
 

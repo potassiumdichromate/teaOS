@@ -55,6 +55,7 @@ export async function getPaper(id: string) {
     masterPaperHash: paper.masterPaperHash,
     chainTxHash: paper.chainTxHash,
     timelockRef: paper.timelockRef,
+    failureReason: paper.failureReason,
     examStartAt: paper.examStartAt,
     examWindowCloseAt: paper.examWindowCloseAt,
     questionCount: paper.paperQuestions.length,

@@ -82,6 +82,7 @@ const STATUS_TONE: Record<string, Tone> = {
   ASSEMBLING: "pending",
   READY: "success",
   LOCKED: "info",
+  FAILED: "danger",
   // SessionStatus
   NOT_STARTED: "neutral",
   IN_PROGRESS: "info",
