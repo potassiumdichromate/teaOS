@@ -1,7 +1,13 @@
-// Local-dev-only seed: Subjects/Chapters and one demo account per role.
-// Never seeds fake ChainAnchor/MidenNote rows — those only ever come from a
-// real testnet/mainnet call, per the project's no-mocks rule (see
-// docs/DATABASE.md "Migrations").
+// Seeds Subjects/Chapters and one demo account per role. Originally
+// local-dev-only; also deliberately run against the deployed Render
+// database as part of `render.yaml`'s startCommand, because this app has
+// no self-registration flow — without these accounts nothing can log in at
+// all (see render.yaml's comment on that decision, 2026-07-29). Safe to run
+// repeatedly anywhere: every write here is an upsert keyed on a stable
+// value (email, subject/chapter name), so it never touches real data an
+// account has since created. Never seeds fake ChainAnchor/MidenNote rows —
+// those only ever come from a real testnet/mainnet call, per the project's
+// no-mocks rule (see docs/DATABASE.md "Migrations").
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 

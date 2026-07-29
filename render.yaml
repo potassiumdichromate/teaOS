@@ -30,7 +30,15 @@ services:
     # node_modules between build and start, so what's installed here is what
     # `npx prisma` finds at start time too.
     buildCommand: npm install --include=dev && npm run build -w packages/shared && npm run build -w apps/api
-    startCommand: npx prisma migrate deploy --schema prisma/schema.prisma && npm run start -w apps/api
+    # `prisma db seed` here is a deliberate exception to "never seed
+    # production" — this app has no self-registration flow, so without it
+    # the deployed database has real, correctly-migrated tables and zero
+    # users, and every login 401s (found live: 2026-07-29). The 5 accounts
+    # it creates are the same public demo/evaluation accounts documented in
+    # README.md and knowledge_base.md, and `prisma/seed.ts` is upsert-based,
+    # so running it on every deploy is idempotent — it never touches real
+    # data these accounts have since created (questions, papers, sessions).
+    startCommand: npx prisma migrate deploy --schema prisma/schema.prisma && npx prisma db seed && npm run start -w apps/api
     healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV

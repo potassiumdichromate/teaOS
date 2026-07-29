@@ -78,7 +78,9 @@ Serve `dist/` from any static host. **Fixed 2026-07-29** (previously a real gap,
 npx prisma migrate deploy --schema prisma/schema.prisma
 ```
 
-`migrate deploy` (not `migrate dev`) — it applies pending migrations without generating new ones or prompting, the correct command for CI/CD per Prisma's own docs. Never run `prisma db seed` against a production database — it's explicitly documented (`prisma/seed.ts`'s own header comment) as local-dev-only, and it upserts fixed demo accounts with a shared, publicly-known password.
+`migrate deploy` (not `migrate dev`) — it applies pending migrations without generating new ones or prompting, the correct command for CI/CD per Prisma's own docs.
+
+**`prisma db seed` runs on Render too, deliberately** (`render.yaml`'s `startCommand`, decided 2026-07-29 after a real deploy came up with zero users and every login 401'd — this app has no self-registration flow, so seeding is the only way any account exists at all). It upserts the same 5 demo accounts documented in `README.md`, sharing one publicly-known password (`dev-password-only`) — **know what that means before you point this deployment at anything beyond a controlled demo**: anyone who has the URL and reads the public repo can log in as Admin or Teacher and trigger real actions (paper generation, real 0G Compute calls, real gas spend). Fine for what this app's own hero copy already calls itself ("Prototype — not a production deployment"); not fine to leave running once the URL is shared broadly without adding real access control first. `prisma/seed.ts` is upsert-based, so re-running it on every deploy is safe — it never touches data those accounts have since created.
 
 ## What's not here yet
 
