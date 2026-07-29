@@ -1,0 +1,47 @@
+# PROJECT_ROADMAP.md
+
+Companion to [knowledge_base.md](../knowledge_base.md) §12 (Pending Tasks) and §13 (Daily Progress Log), which remain the authoritative day-by-day record. This doc is a consolidated, dated snapshot of done-vs-open — update it alongside the knowledge base, don't let the two drift apart.
+
+## Done (as of 2026-07-28)
+
+- Full pipeline, real infra, mainnet: question submission → hardware-attested AI validation (0G Compute, `private` trust mode) → encryption → 0G Storage → 0G Chain anchor. Independently re-verified via raw RPC (knowledge_base.md §11k).
+- Paper Generation, real end to end including the timelock step: blueprint → selection → master paper assembly → drand/tlock seal → `READY` (§11p).
+- Examination Center + Student Exam Client, real, gated on the real timelock (§11e, §11m, §11p).
+- Evaluation Engine + AIR Ranking, real scoring against a real unsealed official key (§11f, §11p).
+- Student Verification, public, all six independent checks passing for the first time 2026-07-28 (§11g, §11q).
+- NTA Admin Overview dashboard, real aggregations and live health checks (§11h).
+- Explainer/landing site (§11i) and the investor one-pager (`pitch/`, deployed to Vercel).
+- Miden → drand/tlock migration for the paper-key timelock (§11o-§11p) and Miden retirement from submission-commitment (§11q) — both proven live on real mainnet infra, `contracts/miden/bridge/` kept dormant per instruction.
+- **This session (2026-07-28, backend completion pass)**:
+  - Real, read-only **Observer role** (auditor/reviewer account type) — schema, auth, dedicated route file, proven live against real mainnet data.
+  - **Confidential Compute Dashboard** and **0G Storage Explorer** wired for real (were honest 501 stubs) — the storage-proof endpoint performs an actual Merkle-verified download against the live mainnet indexer.
+  - Dead schema removed: `Center`, `ExamSchedule` (never populated by any service), `MidenNote` (never written, always returned empty).
+  - Automated test suite stood up (Vitest) — 41 tests: pure crypto/shuffle/scoring unit tests, real-Postgres service tests (separate `nvei_test` database), auth middleware tests, and a mocked-network verify-flow test. `npm test` in `apps/api`.
+  - Scoring logic extracted from `evaluation.service.ts` into a pure, independently-tested function (`lib/scoring.ts`).
+  - Concurrency/load test (`scripts/load-test.mjs`) run against the live dev server — found a real ~19x login-latency regression under 20 concurrent logins (bcryptjs blocking the event loop), see below.
+  - This documentation set (`SECURITY.md`, `THREAT_MODEL.md`, `DEPLOYMENT.md`, `MAINNET_DEPLOYMENT.md`, `AUDIT_LOGS.md`, this file, root `README.md`), plus corrections to stale Miden-as-live-path language in `API_REFERENCE.md`/`SYSTEM_ARCHITECTURE.md`/`MIDEN_INTEGRATION.md`.
+- **Frontend redesign of the authenticated app** (knowledge_base.md §11s):
+  - Shared component system in `apps/web/src/components/ui/`, applied consistently across Login and all five portals (Teacher, Admin, Center, Observer, Student) — the Observer dashboard got its first design pass, the Student exam client kept every CBT mechanic and gained its own distraction-free chrome.
+  - Tailwind theme moved from glassmorphism to a flat, dark-only enterprise system; token names preserved so the landing page's styling wasn't orphaned.
+  - Remaining stale Miden copy in the app's own screens (Center, Student, Evaluation & AIR, Admin overview) corrected to drand/tlock and `SubmissionRegistry`'s write-once guard — the earlier sweep had covered only the backend and docs.
+  - Verified live in a real browser (headless Chrome over CDP, `apps/web/scripts/ui-smoke.mjs`): all five demo roles, real mainnet data, the Admin WebSocket audit-log stream, and the Student exam client in its genuine in-progress state.
+
+## Open — real, prioritized
+
+1. **bcryptjs blocks the event loop under concurrent login load** (found by this session's load test — see docs/THREAT_MODEL.md T9). Fix: swap to the native `bcrypt` binding (offloads to libuv's thread pool) or move hashing off the request path. Highest-priority open item because it's a measured, real production-readiness gap, not a theoretical one.
+2. **No rate limiting** on `/auth/login` or public `/verify` (docs/THREAT_MODEL.md T5, T6).
+3. **`apps/web` has no production API base URL mechanism** — `lib/api.ts` hardcodes a relative `/api` path, which only works via Vite's dev-server proxy or a same-origin reverse proxy in production (docs/DEPLOYMENT.md). Needs either a documented reverse-proxy deployment pattern (already written) or a real env-driven base URL added to the code.
+4. **No CI pipeline, no Dockerfiles, no infra-as-code** (docs/DEPLOYMENT.md) — `build`/`test`/`typecheck` are all real scriptable checks today; none run automatically on push yet.
+5. ~~**Frontend redesign**~~ — **done for the authenticated app** (knowledge_base.md §11s). A shared component system now lives in `apps/web/src/components/ui/` (app shell, data table, stat tile/meter, status badge, form controls, empty/loading/error states, hash-with-copy-and-explorer-link, stepper, live network badge) and is applied consistently across Login and all five portals — Teacher, Admin, Center, Observer and the Student exam client. The Tailwind theme moved from glassmorphism to a flat, dark-only enterprise system, keeping every token name so the landing page wasn't orphaned. All five portals were verified live in a real browser against the running stack, including the in-progress exam client and the Admin WebSocket log stream. **What's still open from this area:**
+   - ~~The public landing page was the stale surface~~ — **fixed 2026-07-29**, see knowledge_base.md §11v. Rebranded NVEI → teaOS (nav, `<title>`, meta description/og tags) and corrected every Miden-as-live-mechanism reference (architecture diagram, pipeline stages, tech stack, all five flow tabs, the "what's real" disclosure, two FAQ entries) to describe the real drand/tlock timelock and `SubmissionRegistry`'s on-chain write-once guard. Also replaced the stale "resolve Miden's Windows build blocker" roadmap item with the two real open items from this list (native `bcrypt`, rate limiting) and fixed two dead `var(--...)` CSS references in the architecture diagram found while in there.
+   - ~~The Confidential Compute Dashboard and 0G Storage Explorer still have no frontend pages~~ — **built 2026-07-29**, see knowledge_base.md §11u. Both live under Admin (`/admin/compute`, `/admin/storage`), built on the existing shared components, and verified live against real mainnet data — including a real Merkle-proof download performed from the Storage Explorer's UI.
+6. ~~**`startExam()` accepts a start after `examWindowCloseAt` has passed**~~ — **fixed 2026-07-29.** `exam.service.ts`'s `startExam()` now also rejects with `409 "Outside the exam time window — the paper's window has closed"` once `now > examWindowCloseAt`, matching `center.service.ts`'s `checkAuthorization()` exactly. Covered by three new real-Postgres tests in `exam.service.test.ts` (before-start, after-close, and a real inside-window success case with the unseal/decrypt path mocked at the network boundary only) — 44/44 tests passing. Also fixed a stale "Miden note" comment in the same file (`getActiveQuestions`'s docstring) found while in there.
+7. **Frontend bundle not code-split** — a single ~999kB chunk after the redesign (Recharts + ReactFlow both loaded eagerly, and there are no route-level dynamic imports). Unchanged by the redesign pass; real follow-up, not a blocker for a prototype.
+8. **Schema**: `MidenNote`/`Center`/`ExamSchedule` removed; no further known dead schema. The frontend pass exercised the Teacher/Admin/Center/Observer/Student API surface end to end without finding another unused model.
+9. **The two `ERROR`-severity `UntrustedMastForest` log lines** during Miden account provisioning (knowledge_base.md §11j) — never investigated, now purely academic since nothing in the live path calls the bridge. Low priority; only worth chasing if the Miden bridge is ever revived.
+10. **Log retention/archival policy** for `AuditLog`/`SecurityEvent` (docs/AUDIT_LOGS.md) — unbounded growth, not a problem yet at current volume.
+
+## Explicitly not planned
+
+- Re-litigating Miden as the live timelock/submission-commitment backend — closed, see knowledge_base.md §11o-§11q. The hourly Miden-compatibility cloud routine (`trig_01Umf5FfgHCpKLPXrfVyotCa`) is left running as informational signal only, per standing instruction.
+- A generic TEE for arbitrary business logic (paper assembly, evaluation) — no such documented product exists on 0G or elsewhere today; this project's own honest framing (knowledge_base.md §2's "framing correction") is that these steps are access-controlled/logged services with hash-anchored inputs/outputs, not enclave-attested compute. Revisit only if a real confidential-computing platform (AWS Nitro, Azure Confidential VMs) becomes a genuine requirement.

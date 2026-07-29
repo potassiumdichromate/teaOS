@@ -2,6 +2,8 @@
 
 Companion to [knowledge_base.md](../knowledge_base.md) — read that first for the ground-truth findings and the "what's real vs. engineered" table this architecture is built on.
 
+> **2026-07-28 status note**: the component map and sequence diagrams below still show Miden testnet as the live timelock/submission-commitment mechanism, reflecting how this doc was originally written. That is no longer the live path. As of 2026-07-28, the paper-key timelock is real drand/tlock (knowledge_base.md §11o-§11p) and double-submission prevention is `SubmissionRegistry`'s own on-chain write-once guard (§11q) — both proven live end-to-end on real mainnet infra. `contracts/miden/bridge/` stays in the repo, dormant, per standing instruction, but nothing in `apps/api` calls it anymore. Read this doc for the overall shape of the pipeline (which is still accurate); mentally substitute "drand/tlock" wherever it says "Miden P2IDE timelock" and "SubmissionRegistry write-once guard" wherever it says "Miden private note + nullifier."
+
 ## 1. Component Map
 
 ```

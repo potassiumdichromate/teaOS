@@ -13,6 +13,7 @@
     "dev:api": "npm run dev -w apps/api",
     "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/web",
     "typecheck": "npm run typecheck -w packages/shared && npm run typecheck -w apps/api && npm run typecheck -w apps/web",
+    "test": "npm run test -w apps/api",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "contracts:compile": "npm run compile -w contracts/evm",

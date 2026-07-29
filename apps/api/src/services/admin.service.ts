@@ -55,11 +55,8 @@ export async function getSecurityEvents(take: number) {
 }
 
 export async function getBlockchainEvents(take: number) {
-  const [anchors, midenNotes] = await Promise.all([
-    chainAnchorRepository.listPage({ take }),
-    prisma.midenNote.findMany({ orderBy: { createdAt: "desc" }, take }),
-  ]);
-  return { chainAnchors: anchors, midenNotes };
+  const anchors = await chainAnchorRepository.listPage({ take });
+  return { chainAnchors: anchors };
 }
 
 export async function getSystemHealth() {

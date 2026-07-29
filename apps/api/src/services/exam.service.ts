@@ -76,7 +76,13 @@ export async function startExam(userId: string, sessionId: string): Promise<Reda
         "The exam cannot start because there is no backend override key, by design.",
     );
   }
-  if (new Date() < session.paper.examStartAt) throw new HttpError(409, "Exam has not started yet");
+  const now = new Date();
+  if (now < session.paper.examStartAt) throw new HttpError(409, "Exam has not started yet");
+  // Same upper bound center.service.ts's checkAuthorization already enforces
+  // — found disagreeing between the two gates during the 2026-07-28 frontend
+  // redesign pass (this one was missing it entirely), see knowledge_base.md
+  // §11s and docs/PROJECT_ROADMAP.md item 6.
+  if (now > session.paper.examWindowCloseAt) throw new HttpError(409, "Outside the exam time window — the paper's window has closed");
   if (!session.paper.timelockRef || !session.paper.storageRoot) {
     throw new HttpError(500, "Paper is READY but missing its timelock ref or storage root — inconsistent state");
   }
@@ -124,8 +130,8 @@ export async function startExam(userId: string, sessionId: string): Promise<Reda
 /**
  * Refresh-resilient resume: an IN_PROGRESS session's redacted question list
  * was already computed once in startExam() and cached server-side (Redis) —
- * re-derive the redacted view from that cache instead of re-consuming the
- * Miden note or re-downloading/decrypting the master paper a second time.
+ * re-derive the redacted view from that cache instead of re-unsealing the
+ * tlock key or re-downloading/decrypting the master paper a second time.
  */
 export async function getActiveQuestions(userId: string, sessionId: string): Promise<RedactedQuestion[]> {
   const profile = await studentProfileFor(userId);

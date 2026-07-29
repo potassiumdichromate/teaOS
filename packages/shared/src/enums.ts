@@ -2,7 +2,7 @@
 // there is deliberately no codegen step from Prisma into this package
 // because apps/web must not depend on @prisma/client.
 
-export const Role = ["TEACHER", "ADMIN", "CENTER", "STUDENT"] as const;
+export const Role = ["TEACHER", "ADMIN", "CENTER", "STUDENT", "OBSERVER"] as const;
 export type Role = (typeof Role)[number];
 
 export const Difficulty = ["EASY", "MEDIUM", "HARD"] as const;
@@ -54,6 +54,7 @@ export const AuditAction = [
   "EVALUATION",
   "AIR_PUBLICATION",
   "VERIFICATION_CHECK",
+  "OBSERVER_LOGIN",
 ] as const;
 export type AuditAction = (typeof AuditAction)[number];
 
@@ -62,9 +63,3 @@ export type ChainNetwork = (typeof ChainNetwork)[number];
 
 export const ZgTrustMode = ["standard", "verified", "private"] as const;
 export type ZgTrustMode = (typeof ZgTrustMode)[number];
-
-export const MidenNotePurpose = ["PAPER_KEY_TIMELOCK", "SUBMISSION_COMMITMENT"] as const;
-export type MidenNotePurpose = (typeof MidenNotePurpose)[number];
-
-export const MidenNoteStatus = ["PENDING", "COMMITTED", "CONSUMED", "RECLAIMED"] as const;
-export type MidenNoteStatus = (typeof MidenNoteStatus)[number];

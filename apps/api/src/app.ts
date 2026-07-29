@@ -9,6 +9,7 @@ import { validationRoutes } from "./routes/validation.routes.js";
 import { computeRoutes } from "./routes/compute.routes.js";
 import { storageRoutes } from "./routes/storage.routes.js";
 import { adminRoutes } from "./routes/admin.routes.js";
+import { observerRoutes } from "./routes/observer.routes.js";
 import { centerRoutes } from "./routes/center.routes.js";
 import { studentRoutes } from "./routes/student.routes.js";
 import { verifyRoutes } from "./routes/verify.routes.js";
@@ -30,6 +31,7 @@ export function createApp() {
   app.use("/api/compute", computeRoutes);
   app.use("/api/storage", storageRoutes);
   app.use("/api/admin", adminRoutes);
+  app.use("/api/observer", observerRoutes);
   app.use("/api/center", centerRoutes);
   app.use("/api/student", studentRoutes);
   app.use("/api/verify", verifyRoutes);

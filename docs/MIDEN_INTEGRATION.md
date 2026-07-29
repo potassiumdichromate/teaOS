@@ -1,5 +1,7 @@
 # MIDEN_INTEGRATION.md
 
+> **Retired from the live path, 2026-07-28.** Everything below is the accurate historical record of real engineering work (self-issued faucet, actor-thread `Send` fix, genesis bootstrap, all proven end-to-end on Miden's devnet) — kept, not deleted, per standing instruction. But live traffic no longer goes through it: the paper-key timelock now runs on real drand/tlock and double-submission prevention now runs on `SubmissionRegistry`'s own on-chain guard (knowledge_base.md §11o-§11q), because Miden's testnet RPC infrastructure never became reliably compatible with any published client version during this project's window. `contracts/miden/bridge/` still compiles and runs; nothing in `apps/api` calls it anymore.
+
 **Network: Miden testnet only. There is no Miden mainnet as of this writing** ("alpha stage... NOT ready for production use," per the Miden protocol/VM repos). Every badge, log line, and doc referencing Miden in this project says "testnet" explicitly — see knowledge_base.md §2/§5.
 
 ## Why Miden, given that constraint

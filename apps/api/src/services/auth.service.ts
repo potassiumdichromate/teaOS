@@ -33,11 +33,15 @@ export async function login(input: LoginInput): Promise<{ token: string; role: R
     expiresIn: env.JWT_EXPIRES_IN,
   } as jwt.SignOptions);
 
-  const actionByRole: Record<Role, "TEACHER_LOGIN" | "STUDENT_LOGIN" | "CENTER_AUTHENTICATION" | "ADMIN_LOGIN"> = {
+  const actionByRole: Record<
+    Role,
+    "TEACHER_LOGIN" | "STUDENT_LOGIN" | "CENTER_AUTHENTICATION" | "ADMIN_LOGIN" | "OBSERVER_LOGIN"
+  > = {
     TEACHER: "TEACHER_LOGIN",
     STUDENT: "STUDENT_LOGIN",
     CENTER: "CENTER_AUTHENTICATION",
     ADMIN: "ADMIN_LOGIN",
+    OBSERVER: "OBSERVER_LOGIN",
   };
   await auditLogRepository.write(actionByRole[user.role], { userId: user.id, metadata: { email: user.email } });
 

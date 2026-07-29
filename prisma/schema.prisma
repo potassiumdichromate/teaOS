@@ -19,6 +19,7 @@ enum Role {
   ADMIN
   CENTER
   STUDENT
+  OBSERVER
 }
 
 model User {
@@ -35,6 +36,7 @@ model User {
   adminProfile   AdminProfile?
   centerProfile  CenterProfile?
   studentProfile StudentProfile?
+  observerProfile ObserverProfile?
   auditLogs      AuditLog[]
   securityEvents SecurityEvent[]
 
@@ -79,6 +81,19 @@ model StudentProfile {
   dob           DateTime
   sessions      StudentExamSession[]
   results       EvaluationResult[]
+}
+
+// Third-party auditor/reviewer account (government auditor, technical
+// reviewer, policymaker — the exact audience named in knowledge_base.md §1).
+// Strictly read-only: every route this role can reach is a GET, enforced at
+// the router level (see routes/observer.routes.ts), never a shared mutation
+// endpoint with ADMIN.
+model ObserverProfile {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id])
+  fullName     String
+  organization String? // e.g. "Independent Technical Auditor", left free-text since this project has no fixed roster of external reviewers
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -255,7 +270,6 @@ model Paper {
   examWindowCloseAt DateTime
 
   paperQuestions   PaperQuestion[]
-  schedule         ExamSchedule?
   sessions         StudentExamSession[]
 
   createdAt        DateTime    @default(now())
@@ -274,24 +288,6 @@ model PaperQuestion {
   marks      Int
 
   @@unique([paperId, questionId])
-}
-
-model ExamSchedule {
-  id        String   @id @default(cuid())
-  paperId   String   @unique
-  paper     Paper    @relation(fields: [paperId], references: [id])
-  name      String
-  startAt   DateTime
-  endAt     DateTime
-  centers   Center[]
-}
-
-model Center {
-  id           String   @id @default(cuid())
-  centerCode   String   @unique
-  name         String
-  scheduleId   String?
-  schedule     ExamSchedule? @relation(fields: [scheduleId], references: [id])
 }
 
 model ExamPC {
@@ -394,6 +390,7 @@ enum AuditAction {
   EVALUATION
   AIR_PUBLICATION
   VERIFICATION_CHECK
+  OBSERVER_LOGIN
 }
 
 model AuditLog {
@@ -450,28 +447,9 @@ model ChainAnchor {
   @@index([entityType, entityId])
 }
 
-enum MidenNotePurpose {
-  PAPER_KEY_TIMELOCK
-  SUBMISSION_COMMITMENT
-}
-
-enum MidenNoteStatus {
-  PENDING
-  COMMITTED
-  CONSUMED
-  RECLAIMED
-}
-
-// Tracks Miden testnet notes referenced elsewhere (Paper.midenNoteId,
-// StudentExamSession.midenNoteId) so the Confidential Compute / Storage
-// Explorer dashboards can show live note status without a Miden RPC round trip.
-model MidenNote {
-  id             String           @id @default(cuid())
-  noteId         String           @unique // Miden protocol note id
-  purpose        MidenNotePurpose
-  status         MidenNoteStatus  @default(PENDING)
-  timelockHeight BigInt?
-  reclaimHeight  BigInt?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-}
+// MidenNote (and its purpose/status enums) removed 2026-07-28: never
+// written by any live code path (Miden is fully retired from the live
+// path — see knowledge_base.md §11o-§11q), only ever read as an
+// always-empty list by the admin blockchain-events view. Miden's own
+// Rust bridge (contracts/miden/bridge/) stays in the repo, dormant, per
+// standing instruction — this was purely an unused Postgres table.

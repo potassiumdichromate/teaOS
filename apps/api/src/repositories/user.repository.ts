@@ -4,7 +4,13 @@ export const userRepository = {
   findByEmail: (email: string) =>
     prisma.user.findUnique({
       where: { email },
-      include: { teacherProfile: true, adminProfile: true, centerProfile: true, studentProfile: true },
+      include: {
+        teacherProfile: true,
+        adminProfile: true,
+        centerProfile: true,
+        studentProfile: true,
+        observerProfile: true,
+      },
     }),
 
   findById: (id: string) => prisma.user.findUnique({ where: { id } }),

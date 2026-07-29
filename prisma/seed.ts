@@ -64,6 +64,21 @@ async function main() {
     },
   });
 
+  const observerUser = await prisma.user.upsert({
+    where: { email: "observer@example.dev" },
+    update: {},
+    create: { email: "observer@example.dev", passwordHash, role: "OBSERVER" },
+  });
+  await prisma.observerProfile.upsert({
+    where: { userId: observerUser.id },
+    update: {},
+    create: {
+      userId: observerUser.id,
+      fullName: "Demo Independent Auditor",
+      organization: "Independent Technical Auditor",
+    },
+  });
+
   const studentUser = await prisma.user.upsert({
     where: { email: "student@example.dev" },
     update: {},

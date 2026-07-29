@@ -18,18 +18,7 @@ import { unsealContentKey } from "../lib/timelock.js";
 import { logger } from "../lib/logger.js";
 import { HttpError } from "../middleware/error.middleware.js";
 import { publish } from "../ws/hub.js";
-
-interface MasterPaperQuestion {
-  questionId: string;
-  marks: number;
-  options: { text: string; isCorrect: boolean }[];
-}
-
-interface SubmittedAnswer {
-  questionId: string;
-  selectedOptionIndex: number | null;
-  markedForReview: boolean;
-}
+import { scoreAnswers, type MasterPaperQuestion, type SubmittedAnswer } from "../lib/scoring.js";
 
 export async function runEvaluationPipeline(paperId: string): Promise<void> {
   const paper = await paperRepository.findById(paperId);
@@ -57,8 +46,6 @@ export async function runEvaluationPipeline(paperId: string): Promise<void> {
   const masterPaper = JSON.parse(decrypt(unpackEncryptedPayload(packed), contentKey).toString()) as {
     questions: MasterPaperQuestion[];
   };
-  const questionsById = new Map(masterPaper.questions.map((q) => [q.questionId, q]));
-
   const negativeMarking = paper.blueprint.negativeMarking;
 
   for (const session of sessions) {
@@ -75,27 +62,11 @@ export async function runEvaluationPipeline(paperId: string): Promise<void> {
     ) as { answers: SubmittedAnswer[] };
 
     publish(`evaluation:${session.id}:status`, { stage: "SCORING" });
-    let rawScore = 0;
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let unattemptedCount = 0;
-
-    for (const answer of answers) {
-      const question = questionsById.get(answer.questionId);
-      if (!question) continue;
-      if (answer.selectedOptionIndex === null) {
-        unattemptedCount++;
-        continue;
-      }
-      const isCorrect = question.options[answer.selectedOptionIndex]?.isCorrect === true;
-      if (isCorrect) {
-        rawScore += question.marks;
-        correctCount++;
-      } else {
-        rawScore -= question.marks * negativeMarking;
-        incorrectCount++;
-      }
-    }
+    const { rawScore, correctCount, incorrectCount, unattemptedCount } = scoreAnswers(
+      masterPaper.questions,
+      answers,
+      negativeMarking,
+    );
 
     const resultHash = sha256Hex(
       JSON.stringify({ sessionId: session.id, rawScore, correctCount, incorrectCount, unattemptedCount }),
